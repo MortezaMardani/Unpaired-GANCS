@@ -194,7 +194,7 @@ tf.app.flags.DEFINE_integer('R_seed', -1,
 tf.app.flags.DEFINE_string('sampling_pattern', '',
                             "specifed file path for undersampling")
 
-tf.app.flags.DEFINE_float('gpu_memory_fraction', 0.95,
+tf.app.flags.DEFINE_float('gpu_memory_fraction', 0.97,
                             "specified the max gpu fraction used per device")
 
 tf.app.flags.DEFINE_integer('hybrid_disc', 0,
@@ -410,7 +410,7 @@ def _train():
         mask = content_mask[key_mask[0]]
     except:
         mask = None
-        print("NO MASK !!!")
+        print("[warining] NO MASK PATTERN!!!")
     # Setup async input queues
     train_features, train_labels, train_masks = srez_input.setup_inputs_one_sources(sess, train_filenames_input, train_filenames_output, 
                                                                         image_size=image_size, 
