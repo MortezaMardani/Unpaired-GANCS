@@ -40,7 +40,7 @@ def generate_mask_alpha(size=[128,128], r_factor_designed=5.0, r_alpha=3, axis_u
     r_factor = len(mask.flatten())/sum(mask.flatten())
     if not mute:
         print('gen mask size of {1} for R-factor={0:.4f}'.format(r_factor, mask.shape))
-        print(num_phase_encode, num_phase_sampled, np.where(mask[0,:]))
+        #print(num_phase_encode, num_phase_sampled, np.where(mask[0,:]))
 
     return mask, r_factor
 
@@ -85,19 +85,27 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
     DEFAULT_MAKS_TF = tf.cast(tf.constant(DEFAULT_MASK), tf.float32)
     DEFAULT_MAKS_TF_c = tf.cast(DEFAULT_MAKS_TF, tf.complex64)
 
-    
     # Read each JPEG file
     reader_input = tf.WholeFileReader()
     filename_queue_input = tf.train.string_input_producer(filenames_input, shuffle=False)
-    key, value_input = reader_input.read(filename_queue_input)
+    _key, value_input = reader_input.read(filename_queue_input)
+
+    reader_output = tf.WholeFileReader()
+    filename_queue_output = tf.train.string_input_producer(filenames_output, shuffle=False)
+    _key, value_output = reader_output.read(filename_queue_output)
     channels = 3
+
     image_input = tf.image.decode_jpeg(value_input, channels=channels, name="input_image")
     image_input.set_shape([image_size[0], 2*image_size[0], channels])
+
+    image_output = tf.image.decode_jpeg(value_output, channels=channels, name="output_image")
+    image_output.set_shape([image_size[0], 2*image_size[0], channels])
 
     print('size_input_image', image_input.get_shape())
 
     image_input = image_input[:,:,-1]   
- 
+    image_output = image_output[:,:,-1]
+
     #choose the complex-valued image
     image_input_mag = tf.cast(image_input[0:image_size[0],0:image_size[1]], tf.complex64)
     image_input_phase = tf.cast(8*tf.constant(math.pi), tf.complex64)*tf.cast(image_input[0:image_size[0],image_size[1]:2*image_size[1]], tf.complex64)
@@ -107,6 +115,13 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
  
     print('image_input_complex', image_input.get_shape())
 
+    image_output_mag = tf.cast(image_output[0:image_size[0],0:image_size[1]], tf.complex64)
+    image_output_phase = tf.cast(8*tf.constant(math.pi), tf.complex64)*tf.cast(image_output[0:image_size[0],image_size[1]:2*image_size[1]], tf.complex64)
+    image_output = tf.multiply(image_output_mag, tf.exp(tf.sqrt(tf.cast(-1,tf.complex64))*image_output_phase))
+    image_output = tf.cast(image_output, tf.complex64)
+    # output, gold-standard
+    image_output = image_output / 255.0
+
     ##choose the magnitude
     #image_input = image_input[0:image_size[0],0:image_size[1]]
 
@@ -114,7 +129,7 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
     #image_input = tf.cast(image_input, tf.float32)/255.0
 
     # output, gold-standard
-    image_output = image_input
+    #image_output = image_input
 
     # apply undersampling mask
     kspace_input = tf.fft2d(tf.cast(image_input,tf.complex64))

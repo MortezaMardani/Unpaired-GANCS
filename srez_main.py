@@ -5,7 +5,6 @@ export CUDA_VISIBLE_DEVICES=0
 python srez_main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom \
                     --dataset_output  /home/enhaog/GANCS/srez/dataset_MRI/phantom \
                     --run train \
-                    --gene_mse_factor 1.0
 
 python3 srez_main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom --batch_size 8 --run train --summary_period 123 --sample_size 256 --train_time 10  --train_dir train_save_all                  
 python srez_main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom2 \
@@ -28,7 +27,6 @@ python srez_main.py --run train \
                     --sample_test 32 --sample_train 30000 \
                     --train_time 300  \
                     --train_dir train_DCE_0508_R4_MSE01 \
-                    --gene_mse_factor 0.1    \
                     --gpu_memory_fraction 0.5
 
 # with sub sampling
@@ -41,7 +39,6 @@ python srez_main.py --run train \
                     --subsample_test 64 --subsample_train 30000 \
                     --train_time 3  \
                     --train_dir train_DCE_0509_R4_MSE10 \
-                    --gene_mse_factor 1.0    \
                     --gpu_memory_fraction 0.4 \
                     --hybrid_disc 0   
 
@@ -125,8 +122,8 @@ tf.app.flags.DEFINE_float('gene_log_factor', 0,
 tf.app.flags.DEFINE_float('gene_dc_factor', 0,
                           "Multiplier for generator data-consistency L2 loss term for data consistency, weighting Data-Consistency with GD-loss for GAN-loss")
 
-tf.app.flags.DEFINE_float('gene_mse_factor', 0,
-                          "Multiplier for generator MSE loss for regression accuracy, weighting MSE VS GAN-loss")
+#tf.app.flags.DEFINE_float('gene_mse_factor', 0,
+#                         "Multiplier for generator MSE loss for regression accuracy, weighting MSE VS GAN-loss")
 
 tf.app.flags.DEFINE_float('learning_beta1', 0.9,
                           "Beta1 parameter used for AdamOptimizer")
@@ -331,8 +328,8 @@ def _train():
 
     # Prepare train and test directories (SEPARATE FOLDER)
     prepare_dirs(delete_train_dir=True, shuffle_filename=False)
-    filenames_input_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=True)
-    filenames_output_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=True)
+    filenames_input_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=False)
+    filenames_output_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=False)
     filenames_input_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
     filenames_output_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
 
@@ -352,9 +349,8 @@ def _train():
     assert(len(filenames_input_test)==len(filenames_output_test))
     num_filename_test = len(filenames_input_test)
 
-    print(num_filename_train)
-    print(num_filename_test)
-    print(filenames_output_test)
+    #print(num_filename_train)
+    #print(num_filename_test)
 
     # check input and output sample number matches (SAME FOLDER)
     #assert(len(filenames_input)==len(filenames_output))
@@ -367,33 +363,23 @@ def _train():
         filenames_output_train = [filenames_output_train[x] for x in index_permutation_split]
         #print(np.shape(filenames_input_train))
 
+    # Permutate test split (SAME FOLDERS)
     if FLAGS.permutation_split:
         index_permutation_split = random.sample(num_filename_test, num_filename_test)
         filenames_input_test = [filenames_input_test[x] for x in index_permutation_split]
         filenames_output_test = [filenames_output_test[x] for x in index_permutation_split]
     #print('filenames_input[:20]',filenames_input[:20])
+    print("First three filenames_output_Test",filenames_output_test[0:3])
+    print("First three filenames_Input_train",filenames_input_train[0:3])
+    print("First three filenames_Output_train",filenames_output_train[0:3])
 
-    # Permutate test split (SAME FOLDERS)
-    #if FLAGS.permutation_split:
-        #index_permutation_split = random.sample(num_filename_test, num_filename_test)
-        #filenames_input_test = [filenames_input_test[x] for x in index_permutation_split]
-        #filenames_output_test = [filenames_output_test[x] for x in index_permutation_split]
-    #print('filenames_input[:20]',filenames_input[:20])
-
-    # Separate training and test sets (SEPARATE FOLDERS)
+    # Sample training and test sets (SEPARATE FOLDERS)
     train_filenames_input = filenames_input_train[:FLAGS.sample_train]    
     train_filenames_output = filenames_output_train[:FLAGS.sample_train]            
     test_filenames_input  = filenames_input_test[:FLAGS.sample_test]
     test_filenames_output  = filenames_output_test[:FLAGS.sample_test]
     #print('test_filenames_input', test_filenames_input)
     #print('train_filenames_input', train_filenames_input)
-
-    # Separate training and test sets (SAME FOLDERS)
-    #train_filenames_input = filenames_input[:-FLAGS.sample_test]    
-    #train_filenames_output = filenames_output[:-FLAGS.sample_test]            
-    #test_filenames_input  = filenames_input[-FLAGS.sample_test:]
-    #test_filenames_output  = filenames_output[-FLAGS.sample_test:]
-    #print('test_filenames_input[:20]',test_filenames_input[:20])    
 
     # randomly subsample for train
     if FLAGS.subsample_train > 0:

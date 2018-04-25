@@ -105,7 +105,7 @@ class Model:
         with tf.variable_scope(self._get_layer_str()):
             this_input = tf.square(self.get_output())
             reduction_indices = list(range(1, len(this_input.get_shape())))
-            acc = tf.reduce_sum(this_input, reduction_indices=reduction_indices, keep_dims=True)
+            acc = tf.reduce_sum(this_input, reduction_indices=reduction_indices, keepdims=True)
             out = this_input / (acc+FLAGS.epsilon)
             #out = tf.verify_tensor_all_finite(out, "add_softmax failed; is sum equal to zero?")
         
@@ -441,7 +441,7 @@ def batchnorm(input):
         channels = input.get_shape()[3]
         offset = tf.get_variable("offset", [channels], dtype=tf.float32, initializer=tf.zeros_initializer())
         scale = tf.get_variable("scale", [channels], dtype=tf.float32, initializer=tf.random_normal_initializer(1.0, 0.02))
-        mean, variance = tf.nn.moments(input, axes=[0, 1, 2], keep_dims=False)
+        mean, variance = tf.nn.moments(input, axes=[0, 1, 2], keepdims=False)
         variance_epsilon = 1e-5
         normalized = tf.nn.batch_normalization(input, mean, variance, offset, scale, variance_epsilon=variance_epsilon)
         return normalized      
@@ -954,11 +954,11 @@ def keras_var(x, axis=None, keepdims=False):
     # axis = _normalize_axis(axis, ndim(x))
     if x.dtype.base_dtype == tf.bool:
         x = tf.cast(x, floatx())
-    m = tf.reduce_mean(x, reduction_indices=axis, keep_dims=True)
+    m = tf.reduce_mean(x, reduction_indices=axis, keepdims=True)
     devs_squared = tf.square(x - m)
     return tf.reduce_mean(devs_squared,
                           reduction_indices=axis,
-                          keep_dims=keepdims)
+                          keepdims=keepdims)
 
 
 def keras_std(x, axis=None, keepdims=False):
@@ -991,7 +991,7 @@ def keras_mean(x, axis=None, keepdims=False):
     # axis = _normalize_axis(axis, ndim(x))
     if x.dtype.base_dtype == tf.bool:
         x = tf.cast(x, floatx())
-    return tf.reduce_mean(x, reduction_indices=axis, keep_dims=keepdims)
+    return tf.reduce_mean(x, reduction_indices=axis, keepdims=keepdims)
 
 def loss_DSSIS_tf11(y_true, y_pred, patch_size=5, batch_size=-1):
     # get batch size
