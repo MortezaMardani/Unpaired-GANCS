@@ -94,11 +94,11 @@ tf.app.flags.DEFINE_string('checkpoint_dir', 'checkpoint',
 tf.app.flags.DEFINE_integer('checkpoint_period', 10000,
                             "Number of batches in between checkpoints")
 
-tf.app.flags.DEFINE_string('dataset', '',
-                           "Path to the train dataset directory.")
+tf.app.flags.DEFINE_string('dataset_label', '',
+                           "Path to the train dataset label directory.")
 
 tf.app.flags.DEFINE_string('dataset_train', '',
-                           "Path to the train dataset directory.")
+                           "Path to the train dataset input directory.")
 
 tf.app.flags.DEFINE_string('dataset_test', '',
                            "Path to the test dataset directory.")
@@ -114,7 +114,6 @@ tf.app.flags.DEFINE_float('gene_l1l2_factor', 0,
 
 tf.app.flags.DEFINE_float('gene_ssim_factor', 0.0,
                           "The ratio of ssim vs l1l2 factor, MSE=beta*ssim+(1-beta)*l1l2")
-
 
 tf.app.flags.DEFINE_float('gene_log_factor', 0,
                           "Multiplier for generator fool loss term, weighting log-loss vs LS loss")
@@ -138,10 +137,10 @@ tf.app.flags.DEFINE_bool('log_device_placement', False,
                          "Log the device where variables are placed.")
 
 tf.app.flags.DEFINE_integer('sample_size', 128,
-                            "Image sample size in pixels. Range [64,128]")
+                            "Image sample height in pixels.")
 
 tf.app.flags.DEFINE_integer('sample_size_y', -1,
-                            "Image sample size in pixels. by default the sample as sample_size")
+                            "Image sample width in pixels. by default the sample as sample_size")
 
 tf.app.flags.DEFINE_integer('summary_period', 500,
                             "Number of batches between summary data dumps")
@@ -328,20 +327,13 @@ def _train():
 
     # Prepare train and test directories (SEPARATE FOLDER)
     prepare_dirs(delete_train_dir=True, shuffle_filename=False)
+    # if not specify use the same as input
+    if FLAGS.dataset_label == '':
+        FLAGS.dataset_label = FLAGS.dataset_train
     filenames_input_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=False)
-    filenames_output_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=False)
+    filenames_output_train = get_filenames(dir_file=FLAGS.dataset_label, shuffle_filename=False)
     filenames_input_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
     filenames_output_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
-
-
-    ## Prepare directories (SAME FOLDER)
-    #prepare_dirs(delete_train_dir=True, shuffle_filename=False)
-    #filenames_input = get_filenames(dir_file=FLAGS.dataset_input, shuffle_filename=False)
-    ## if not specify use the same as input
-    #if FLAGS.dataset_output == '':
-        #FLAGS.dataset_output = FLAGS.dataset_input
-    #filenames_output = get_filenames(dir_file=FLAGS.dataset_output, shuffle_filename=False)
-
 
     # check input and output sample number matches (SEPARATE FOLDER)
     assert(len(filenames_input_train)==len(filenames_output_train))
@@ -351,10 +343,6 @@ def _train():
 
     #print(num_filename_train)
     #print(num_filename_test)
-
-    # check input and output sample number matches (SAME FOLDER)
-    #assert(len(filenames_input)==len(filenames_output))
-    #num_filename_all = len(filenames_input)
 
     # Permutate train and test split (SEPARATE FOLDERS)
     index_permutation_split = random.sample(range(num_filename_train), num_filename_train)
