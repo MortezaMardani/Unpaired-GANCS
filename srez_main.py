@@ -150,7 +150,7 @@ tf.app.flags.DEFINE_integer('summary_train_period', 50,
                             "Number of batches between train data dumps")
 
 tf.app.flags.DEFINE_bool('permutation_split', False,
-                         "Whether to randomly permutate order before split train and test.")
+                         "Whether to randomly permutate order of input and label.")
 
 tf.app.flags.DEFINE_bool('permutation_train', True,
                          "Whether to randomly permutate order for training sub-samples.")
@@ -194,7 +194,7 @@ tf.app.flags.DEFINE_integer('R_seed', -1,
 tf.app.flags.DEFINE_string('sampling_pattern', '',
                             "specifed file path for undersampling")
 
-tf.app.flags.DEFINE_float('gpu_memory_fraction', 0.9,
+tf.app.flags.DEFINE_float('gpu_memory_fraction', 0.95,
                             "specified the max gpu fraction used per device")
 
 tf.app.flags.DEFINE_integer('hybrid_disc', 0,
@@ -357,17 +357,18 @@ def _train():
     #num_filename_all = len(filenames_input)
 
     # Permutate train and test split (SEPARATE FOLDERS)
+    index_permutation_split = random.sample(range(num_filename_train), num_filename_train)
+    filenames_input_train = [filenames_input_train[x] for x in index_permutation_split]
     if FLAGS.permutation_split:
-        index_permutation_split = random.sample(num_filename_train, num_filename_train)
-        filenames_input_train = [filenames_input_train[x] for x in index_permutation_split]
-        filenames_output_train = [filenames_output_train[x] for x in index_permutation_split]
+        index_permutation_split = random.sample(range(num_filename_train), num_filename_train)
+    filenames_output_train = [filenames_output_train[x] for x in index_permutation_split]
         #print(np.shape(filenames_input_train))
 
     # Permutate test split (SAME FOLDERS)
     if FLAGS.permutation_split:
-        index_permutation_split = random.sample(num_filename_test, num_filename_test)
+        '''index_permutation_split = random.sample(range(num_filename_test), num_filename_test)
         filenames_input_test = [filenames_input_test[x] for x in index_permutation_split]
-        filenames_output_test = [filenames_output_test[x] for x in index_permutation_split]
+        filenames_output_test = [filenames_output_test[x] for x in index_permutation_split]'''
     #print('filenames_input[:20]',filenames_input[:20])
     print("First three filenames_output_Test",filenames_output_test[0:3])
     print("First three filenames_Input_train",filenames_input_train[0:3])
@@ -409,7 +410,7 @@ def _train():
         mask = content_mask[key_mask[0]]
     except:
         mask = None
-
+        print("NO MASK !!!")
     # Setup async input queues
     train_features, train_labels, train_masks = srez_input.setup_inputs_one_sources(sess, train_filenames_input, train_filenames_output, 
                                                                         image_size=image_size, 
