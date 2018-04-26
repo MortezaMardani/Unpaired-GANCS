@@ -136,11 +136,17 @@ tf.app.flags.DEFINE_integer('learning_rate_half_life', 100000,
 tf.app.flags.DEFINE_bool('log_device_placement', False,
                          "Log the device where variables are placed.")
 
-tf.app.flags.DEFINE_integer('sample_size', 128,
+tf.app.flags.DEFINE_integer('sample_size', 256,
                             "Image sample height in pixels.")
 
 tf.app.flags.DEFINE_integer('sample_size_y', -1,
-                            "Image sample width in pixels. by default the sample as sample_size")
+                            "Image sample width in pixels. by default half sample_size")
+
+tf.app.flags.DEFINE_integer('label_size', 320,
+                            "Good Image height in pixels.")
+
+tf.app.flags.DEFINE_integer('label_size_x', 256,
+                            "Good Image width in pixels. by default half label_size")
 
 tf.app.flags.DEFINE_integer('summary_period', 500,
                             "Number of batches between summary data dumps")
@@ -322,7 +328,10 @@ def _train():
     if FLAGS.sample_size_y>0:
         image_size = [FLAGS.sample_size, FLAGS.sample_size_y]
     else:
-        image_size = [FLAGS.sample_size, FLAGS.sample_size]
+        image_size = [FLAGS.sample_size, FLAGS.sample_size/2]
+
+    # label_size
+    label_size = [FLAGS.label_size, FLAGS.label_size_x]
 
 
     # Prepare train and test directories (SEPARATE FOLDER)
@@ -402,6 +411,7 @@ def _train():
     # Setup async input queues
     train_features, train_labels, train_masks = srez_input.setup_inputs_one_sources(sess, train_filenames_input, train_filenames_output, 
                                                                         image_size=image_size, 
+                                                                        label_size=label_size,
                                                                         # undersampling
                                                                         axis_undersample=FLAGS.axis_undersample, 
                                                                         r_factor=FLAGS.R_factor,
@@ -411,6 +421,7 @@ def _train():
                                                                         )
     test_features,  test_labels, test_masks = srez_input.setup_inputs_one_sources(sess, test_filenames_input, test_filenames_output,
                                                                         image_size=image_size, 
+                                                                        label_size=label_size,
                                                                         # undersampling
                                                                         axis_undersample=FLAGS.axis_undersample, 
                                                                         r_factor=FLAGS.R_factor,

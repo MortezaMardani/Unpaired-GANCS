@@ -56,7 +56,7 @@ def generate_mask_mat(mask=[], mute=0):
     return mask, r_factor
 
 
-def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size=None, 
+def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size=None, label_size=None, 
                              axis_undersample=1, capacity_factor=1, 
                              r_factor=4, r_alpha=0, r_seed=0,
                              sampling_mask=None, num_threads=1):
@@ -97,11 +97,9 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
 
     image_input = tf.image.decode_jpeg(value_input, channels=channels, name="input_image")
     image_input.set_shape([image_size[0], 2*image_size[0], channels])
-
     image_output = tf.image.decode_jpeg(value_output, channels=channels, name="output_image")
-    image_output.set_shape([image_size[0], 2*image_size[0], channels])
-
-    print('size_input_image', image_input.get_shape())
+    image_output.set_shape([label_size[0], 2*label_size[0], channels])
+    print('size I/O_image', image_input.get_shape(), image_output.get_shape())
 
     image_input = image_input[:,:,-1]   
     image_output = image_output[:,:,-1]
@@ -112,17 +110,17 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
     image_input = tf.multiply(image_input_mag, tf.exp(tf.sqrt(tf.cast(-1,tf.complex64))*image_input_phase))
     image_input = tf.cast(image_input, tf.complex64)
     image_input = image_input / 255.0 #tf.cast(tf.reduce_max(tf.abs(image_input)), tf.complex64)
- 
-    print('image_input_complex', image_input.get_shape())
-    print('image_output_complex', image_output.get_shape())
 
-
-    image_output_mag = tf.cast(image_output[0:image_size[0],0:image_size[1]], tf.complex64)
-    image_output_phase = tf.cast(8*tf.constant(math.pi), tf.complex64)*tf.cast(image_output[0:image_size[0],image_size[1]:2*image_size[1]], tf.complex64)
+    image_output_mag = tf.cast(image_output[0:label_size[0],0:label_size[1]], tf.complex64)
+    image_output_phase = tf.cast(8*tf.constant(math.pi), tf.complex64)*tf.cast(image_output[0:label_size[0],label_size[1]:2*label_size[1]], tf.complex64)
     image_output = tf.multiply(image_output_mag, tf.exp(tf.sqrt(tf.cast(-1,tf.complex64))*image_output_phase))
     image_output = tf.cast(image_output, tf.complex64)
     # output, gold-standard
     image_output = image_output / 255.0
+
+    print('image_input_complex size', image_input.get_shape())
+    print('image_output_complex size', image_output.get_shape())
+
 
     ##choose the magnitude
     #image_input = image_input[0:image_size[0],0:image_size[1]]
@@ -147,15 +145,15 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
 
     # split the complex label into real and imaginary channels
     image_output_real = tf.real(image_output)
-    image_output_real = tf.reshape(image_output_real, [image_size[0], image_size[1], 1])
+    image_output_real = tf.reshape(image_output_real, [label_size[0], label_size[1], 1])
     image_output_complex = tf.imag(image_output)
-    image_output_complex = tf.reshape(image_output_complex, [image_size[0], image_size[1], 1])
+    image_output_complex = tf.reshape(image_output_complex, [label_size[0], label_size[1], 1])
     image_output_concat = tf.concat(axis=2, values=[image_output_real, image_output_complex])
     
 
     # The feature is zpad image with 2 channel, label is the ground-truth real-valued image
     feature = tf.reshape(image_zpad_concat, [image_size[0], image_size[1], 2])
-    label   = tf.reshape(image_output_concat, [image_size[0], image_size[1], 2])
+    label   = tf.reshape(image_output_concat, [label_size[0], label_size[1], 2])
     mask = tf.reshape(DEFAULT_MAKS_TF_c, [image_size[0], image_size[1]])
 
     # Using asynchronous queues

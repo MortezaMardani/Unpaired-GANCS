@@ -7,7 +7,6 @@ import json
 from scipy.io import savemat
 
 FLAGS = tf.app.flags.FLAGS
-# FLAGS.sample_size_y = FLAGS.sample_size if FLAGS.sample_size_y<0
 OUTPUT_TRAIN_SAMPLES = 0
 
 def _summarize_progress(train_data, feature, label, gene_output, 
