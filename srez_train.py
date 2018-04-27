@@ -105,9 +105,9 @@ def _save_checkpoint(train_data, batch):
 
     # Generate new checkpoint
     saver = tf.train.Saver(sharded=True)
-    saver.save(td.sess, newname)
+    filename=saver.save(td.sess, newname)
 
-    print("Checkpoint saved")
+    print("Checkpoint saved:",filename)
 
 def train_model(train_data, num_sample_train=1984, num_sample_test=116):
     td = train_data
@@ -116,7 +116,7 @@ def train_model(train_data, num_sample_train=1984, num_sample_test=116):
     summaries = tf.summary.merge_all()
     # td.sess.run(tf.initialize_all_variables()) # will deprecated 2017-03-02
     # DONE: change to tf.global_variables_initializer()
-    td.sess.run(tf.global_variables_initializer())
+    #td.sess.run(tf.global_variables_initializer())
 
     #TODO: load data
 

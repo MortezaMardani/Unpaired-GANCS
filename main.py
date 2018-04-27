@@ -465,11 +465,14 @@ def _train():
     # Restore variables from checkpoint
     filename = 'checkpoint_new.txt'
     filename = os.path.join(FLAGS.checkpoint_dir, filename)
-    if tf.gfile.Exists(filename):
+    metafile=filename+'.meta'
+    if tf.gfile.Exists(metafile):
         saver = tf.train.Saver()
-        print "Loading checkpoint from file `%s'" % (filename,))
+        print("Loading checkpoint from file `%s'" % (filename,))
         saver.restore(sess, filename)
-
+    else:
+        print("No checkpoint `%s', train from scratch" % (filename,))
+        sess.run(tf.global_variables_initializer())
     # Train model
     train_data = TrainData(locals())
     srez_train.train_model(train_data, num_sample_train, num_sample_test)
