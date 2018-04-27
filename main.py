@@ -462,6 +462,14 @@ def _train():
             srez_model.create_optimizers(gene_loss, gene_var_list,
                                          disc_loss, disc_var_list)
 
+    # Restore variables from checkpoint
+    filename = 'checkpoint_new.txt'
+    filename = os.path.join(FLAGS.checkpoint_dir, filename)
+    if tf.gfile.Exists(filename):
+        saver = tf.train.Saver()
+        print "Loading checkpoint from file `%s'" % (filename,))
+        saver.restore(sess, filename)
+
     # Train model
     train_data = TrainData(locals())
     srez_train.train_model(train_data, num_sample_train, num_sample_test)

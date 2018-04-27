@@ -1,3 +1,3 @@
 4/25 1908
 exp1_b5000: looks good because first 5000 batches are training with mse_factor=1
-exp1_b10000: mse_factor decreased from 1 to 0.96, already looks worse than at b5000
+exp1_b10000: mse_factor decreased from 1 to 0.96, already looks worse than at b5000. GAN loss takes more time to converge. Will train further from the checkpoint if resources allow.
