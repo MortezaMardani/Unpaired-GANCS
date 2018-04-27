@@ -338,7 +338,7 @@ def _train():
 
 
     # Prepare train and test directories (SEPARATE FOLDER)
-    prepare_dirs(delete_train_dir=True, shuffle_filename=False)
+    prepare_dirs(delete_train_dir=False, shuffle_filename=False)
     # if not specify use the same as input
     if FLAGS.dataset_label == '':
         FLAGS.dataset_label = FLAGS.dataset_train
