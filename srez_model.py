@@ -370,7 +370,7 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
             disc_hybird = tf.concat(axis = 3, values = [disc_input * 2-1, disc_kspace_imag, disc_kspace_real, disc_kspace_imag])
     else:
         disc_hybird = 2 * disc_input - 1
-    print(hybrid_disc, 'discriminator input dimensions: {0}'.format(disc_hybird.get_shape()))
+    print('discriminator input dimensions: {0}'.format(disc_hybird.get_shape()))
     model = Model('DIS', disc_hybird)        
 
     for layer in range(len(layers)):
@@ -454,7 +454,7 @@ def Fourier(x, separate_complex=True):
         x_complex = x
     x_complex = tf.reshape(x_complex,x_complex.get_shape()[:3])
     y_complex = tf.fft2d(x_complex)
-    print('using Fourier, input dim {0}, output dim {1}'.format(x.get_shape(), y_complex.get_shape()))
+    #print('using Fourier, input dim {0}, output dim {1}'.format(x.get_shape(), y_complex.get_shape()))
     # x = tf.cast(x, tf.complex64)
     # y = tf.fft3d(x)
     # y = y[:,:,:,-1]
