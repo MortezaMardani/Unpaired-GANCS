@@ -109,7 +109,7 @@ def _save_checkpoint(train_data, batch):
 
     print("Checkpoint saved:",filename)
 
-def train_model(train_data, num_sample_train=1984, num_sample_test=116):
+def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=116):
     td = train_data
 
     # update merge_all_summaries() to tf.summary.merge_all
@@ -123,7 +123,7 @@ def train_model(train_data, num_sample_train=1984, num_sample_test=116):
     lrval       = FLAGS.learning_rate_start
     start_time  = time.time()
     done  = False
-    batch = 0
+    batch = batchcount
 
     # batch info    
     batch_size = FLAGS.batch_size
@@ -172,12 +172,12 @@ def train_model(train_data, num_sample_train=1984, num_sample_test=116):
         gene_mse_loss = list_gene_losses[1]   
 
         # verbose training progress
-        if batch % 10 == 0:
+        if batch % 30 == 0:
             # Show we are alive
             elapsed = int(time.time() - start_time)/60
-            err_log = 'Progress[{0:3f}%], ETA[{1:4f}m], Batch [{2:4f}], G_Loss[{3}], G_mse_Loss[{4:3.3f}], G_LS_Loss[{5:3.3f}], D_Real_Loss[{6:3.3f}], D_Fake_Loss[{7:3.3f}]'.format(
+            err_log = 'Progress[{0:3f}%], ETA[{1:4f}m], Batch [{2:1f}], G_Loss[{3}], G_mse_Loss[{4:3.3f}], G_LS_Loss[{5:3.3f}], G_DC_Loss[{6:3.3f}], D_Real_Loss[{7:3.3f}], D_Fake_Loss[{8:3.3f}]'.format(
                     int(100*elapsed/FLAGS.train_time), FLAGS.train_time - elapsed, batch, 
-                    gene_loss, gene_mse_loss, gene_ls_loss, disc_real_loss, disc_fake_loss)
+                    gene_loss, gene_mse_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss)
             print(err_log)
             # update err loss
             err_loss = [int(batch), float(gene_loss), float(gene_dc_loss), 

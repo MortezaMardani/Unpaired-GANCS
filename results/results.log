@@ -3,5 +3,6 @@ exp1_b5000: looks good because first 5000 batches are training with mse_factor=1
 exp1_b10000: mse_factor decreased from 1 to 0.96, already looks worse than at b5000. GAN loss takes more time to converge. Will train further from the checkpoint if resources allow.
 
 4/26 2039
-For exp3: Batch [10.000000] G_Loss[1.2340922355651855], G_mse_Loss[0.240], G_LS_Loss[1.234], D_Real_Loss[0.785], D_Fake_Loss[4.447]
-Batch [34710.000000] G_Loss[0.0032694723922759295], G_mse_Loss[8.998], G_LS_Loss[0.003], D_Real_Loss[0.058], D_Fake_Loss[0.912]
+For exp3: Batch [10] G_Loss[1.2340922355651855], G_mse_Loss[0.240], G_LS_Loss[1.234], D_Real_Loss[0.785], D_Fake_Loss[4.447]
+Batch [34710] G_Loss[0.0032694723922759295], G_mse_Loss[8.998], G_LS_Loss[0.003], D_Real_Loss[0.058], D_Fake_Loss[0.912]
+Batch [40000], G_Loss[0.06962931901216507], G_mse_Loss[16.926], G_LS_Loss[0.070], D_Real_Loss[0.072], D_Fake_Loss[0.544]

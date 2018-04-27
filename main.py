@@ -88,6 +88,9 @@ tf.app.flags.DEFINE_integer('number_of_copies', 3,
 tf.app.flags.DEFINE_integer('batch_size', 16,
                             "Number of samples per batch.")
 
+tf.app.flags.DEFINE_integer('starting_batch', 0,
+                            "Starting batch count, use when resume from ckpt.")
+
 tf.app.flags.DEFINE_string('checkpoint_dir', 'checkpoint',
                            "Output folder where checkpoints are dumped.")
 
@@ -106,14 +109,14 @@ tf.app.flags.DEFINE_string('dataset_test', '',
 tf.app.flags.DEFINE_float('epsilon', 1e-8,
                           "Fuzz term to avoid numerical instability")
 
-tf.app.flags.DEFINE_string('run', 'demo',
+tf.app.flags.DEFINE_string('run', 'train',
                             "Which operation to run. [demo|train]")   #demo
 
-tf.app.flags.DEFINE_float('gene_l1l2_factor', 0,
-                          "The ratio of l1 l2 factor, MSE=alpha*l1+(1-alpha)*l2")
+#tf.app.flags.DEFINE_float('gene_l1l2_factor', 0,
+#                          "The ratio of l1 l2 factor, MSE=alpha*l1+(1-alpha)*l2")
 
-tf.app.flags.DEFINE_float('gene_ssim_factor', 0.0,
-                          "The ratio of ssim vs l1l2 factor, MSE=beta*ssim+(1-beta)*l1l2")
+#tf.app.flags.DEFINE_float('gene_ssim_factor', 0.0,
+#                          "The ratio of ssim vs l1l2 factor, MSE=beta*ssim+(1-beta)*l1l2")
 
 tf.app.flags.DEFINE_float('gene_log_factor', 0,
                           "Multiplier for generator fool loss term, weighting log-loss vs LS loss")
@@ -475,7 +478,7 @@ def _train():
         sess.run(tf.global_variables_initializer())
     # Train model
     train_data = TrainData(locals())
-    srez_train.train_model(train_data, num_sample_train, num_sample_test)
+    srez_train.train_model(train_data, FLAGS.starting_batch, num_sample_train, num_sample_test)
 
 def main(argv=None):
     # Training or showing off?
