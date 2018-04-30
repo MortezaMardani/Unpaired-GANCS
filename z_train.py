@@ -145,6 +145,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
     # print([type(x) for x in list_test_features])
     # print([type(x) for x in list_test_labels])
     accumuated_err_loss=[]
+    sum_writer=tf.summary.FileWriter(self.FLAGS.train_dir, td.sess.graph)
     while not done:
         batch += 1
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
@@ -164,8 +165,9 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         # ops = [td.gene_minimize, td.disc_minimize, td.gene_loss, td.disc_real_loss, td.disc_fake_loss, 
         #        td.train_features, td.train_labels, td.gene_output]#, td.gene_var_list, td.gene_layers]
         # _, _, gene_loss, disc_real_loss, disc_fake_loss, train_feature, train_label, train_output = td.sess.run(ops, feed_dict=feed_dict)
-        ops = [td.gene_minimize, td.disc_minimize, td.gene_loss, td.gene_ls_loss, td.gene_dc_loss, td.disc_real_loss, td.disc_fake_loss, td.list_gene_losses]                   
-        _, _, gene_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss, list_gene_losses = td.sess.run(ops, feed_dict=feed_dict)
+        ops = [td.gene_minimize, td.disc_minimize, summaries, td.gene_loss, td.gene_ls_loss, td.gene_dc_loss, td.disc_real_loss, td.disc_fake_loss, td.list_gene_losses]                   
+        _, _, fet_sum,gene_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss, list_gene_losses = td.sess.run(ops, feed_dict=feed_dict)
+        sum_writer.add_summary(fet_sum,batch)
         
         # get all losses
         list_gene_losses = [float(x) for x in list_gene_losses]
