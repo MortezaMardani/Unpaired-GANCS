@@ -2,12 +2,12 @@
 train on GAN-CS 
 example
 export CUDA_VISIBLE_DEVICES=0
-python srez_main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom \
+python main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom \
                     --dataset_output  /home/enhaog/GANCS/srez/dataset_MRI/phantom \
                     --run train \
 
-python3 srez_main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom --batch_size 8 --run train --summary_period 123 --sample_size 256 --train_time 10  --train_dir train_save_all                  
-python srez_main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom2 \
+python3 main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom --batch_size 8 --run train --summary_period 123 --sample_size 256 --train_time 10  --train_dir train_save_all                  
+python main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom2 \
                     --batch_size 4 --run train --summary_period 125 \
                     --sample_size 256 \
                     --train_time 10  \
@@ -19,7 +19,7 @@ python srez_main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom2
                     --R_seed -1 
 
 #DCE
-python srez_main.py --run train \
+python main.py --run train \
                     --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/abdominal_DCE \
                     --sample_size 200 --sample_size_y 100 \
                     --sampling_pattern /home/enhaog/GANCS/srez/dataset_MRI/sampling_pattern_DCE/mask_2dvardesnity_radiaview_4fold.mat \
@@ -30,7 +30,7 @@ python srez_main.py --run train \
                     --gpu_memory_fraction 0.5
 
 # with sub sampling
-python srez_main.py --run train \
+python main.py --run train \
                     --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/abdominal_DCE \
                     --sample_size 200 --sample_size_y 100 \
                     --sampling_pattern /home/enhaog/GANCS/srez/dataset_MRI/sampling_pattern_DCE/mask_2dvardesnity_radiaview_4fold.mat \
@@ -43,7 +43,7 @@ python srez_main.py --run train \
                     --hybrid_disc 0   
 
 
-python3 srez_main.py  --run train \
+python3 main.py  --run train \
                       --dataset_train /mnt/raid5/morteza/datasets/Abdominal-DCE-616cases/train\   
                       --dataset_test /mnt/raid5/morteza/datasets/Abdominal-DCE-616cases/test\   
                       --sample_size 256 \  
@@ -62,10 +62,10 @@ python3 srez_main.py  --run train \
 
 
 """
-#import srez_demo
-import srez_input
-import srez_model
-import srez_train
+#import z_demo
+import z_input
+import z_model
+import z_train
 
 import os.path
 import random
@@ -302,13 +302,13 @@ def _demo():
     filenames = prepare_dirs(delete_train_dir=False)
 
     # Setup async input queues
-    features, labels = srez_input.setup_inputs(sess, filenames)
+    features, labels = z_input.setup_inputs(sess, filenames)
 
     # Create and initialize model
     [gene_minput, gene_moutput,
      gene_output, gene_var_list,
      disc_real_output, disc_fake_output, disc_var_list] = \
-            srez_model.create_model(sess, features, labels)
+            z_model.create_model(sess, features, labels)
 
     # Restore variables from checkpoint
     saver = tf.train.Saver()
@@ -317,7 +317,7 @@ def _demo():
     saver.restore(sess, filename)
 
     # Execute demo
-    srez_demo.demo1(sess)
+    z_demo.demo1(sess)
 
 class TrainData(object):
     def __init__(self, dictionary):
@@ -412,7 +412,7 @@ def _train():
         mask = None
         print("[warining] NO MASK PATTERN!!!")
     # Setup async input queues
-    train_features, train_labels, train_masks = srez_input.setup_inputs_one_sources(sess, train_filenames_input, train_filenames_output, 
+    train_features, train_labels, train_masks = z_input.setup_inputs_one_sources(sess, train_filenames_input, train_filenames_output, 
                                                                         image_size=image_size, 
                                                                         label_size=label_size,
                                                                         # undersampling
@@ -422,7 +422,7 @@ def _train():
                                                                         r_seed=FLAGS.R_seed,
                                                                         sampling_mask=mask
                                                                         )
-    test_features,  test_labels, test_masks = srez_input.setup_inputs_one_sources(sess, test_filenames_input, test_filenames_output,
+    test_features,  test_labels, test_masks = z_input.setup_inputs_one_sources(sess, test_filenames_input, test_filenames_output,
                                                                         image_size=image_size, 
                                                                         label_size=label_size,
                                                                         # undersampling
@@ -454,15 +454,15 @@ def _train():
 
     # Create and initialize model
     [gene_minput, gene_moutput, gene_output, gene_var_list, gene_layers, gene_mlayers, disc_real_output, disc_fake_output, disc_var_list, disc_layers] = \
-            srez_model.create_model(sess, noisy_train_features, train_labels, train_masks, architecture=FLAGS.architecture)
+            z_model.create_model(sess, noisy_train_features, train_labels, train_masks, architecture=FLAGS.architecture)
 
-    gene_loss, gene_dc_loss, gene_ls_loss, list_gene_losses, gene_mse_factor = srez_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks)
+    gene_loss, gene_dc_loss, gene_ls_loss, list_gene_losses, gene_mse_factor = z_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks)
     disc_real_loss, disc_fake_loss = \
-                     srez_model.create_discriminator_loss(disc_real_output, disc_fake_output)
+                     z_model.create_discriminator_loss(disc_real_output, disc_fake_output)
     disc_loss = tf.add(disc_real_loss, disc_fake_loss, name='disc_loss')
     
     (global_step, learning_rate, gene_minimize, disc_minimize) = \
-            srez_model.create_optimizers(gene_loss, gene_var_list,
+            z_model.create_optimizers(gene_loss, gene_var_list,
                                          disc_loss, disc_var_list)
 
     # Restore variables from checkpoint
@@ -478,7 +478,7 @@ def _train():
         sess.run(tf.global_variables_initializer())
     # Train model
     train_data = TrainData(locals())
-    srez_train.train_model(train_data, FLAGS.starting_batch, num_sample_train, num_sample_test)
+    z_train.train_model(train_data, FLAGS.starting_batch, num_sample_train, num_sample_test)
 
 def main(argv=None):
     # Training or showing off?

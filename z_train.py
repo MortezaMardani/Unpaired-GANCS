@@ -145,7 +145,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
     # print([type(x) for x in list_test_features])
     # print([type(x) for x in list_test_labels])
     accumuated_err_loss=[]
-    sum_writer=tf.summary.FileWriter(self.FLAGS.train_dir, td.sess.graph)
+    sum_writer=tf.summary.FileWriter(FLAGS.train_dir, td.sess.graph)
     while not done:
         batch += 1
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
