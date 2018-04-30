@@ -464,7 +464,7 @@ def _train():
     (global_step, learning_rate, gene_minimize, disc_minimize) = \
             z_model.create_optimizers(gene_loss, gene_var_list,
                                          disc_loss, disc_var_list)
-
+    summary_op=tf.summary.merge_all()
     # Restore variables from checkpoint
     filename = 'checkpoint_new.txt'
     filename = os.path.join(FLAGS.checkpoint_dir, filename)
