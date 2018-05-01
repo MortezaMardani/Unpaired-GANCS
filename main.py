@@ -94,7 +94,7 @@ tf.app.flags.DEFINE_integer('starting_batch', 0,
 tf.app.flags.DEFINE_string('checkpoint_dir', 'checkpoint',
                            "Output folder where checkpoints are dumped.")
 
-tf.app.flags.DEFINE_integer('checkpoint_period', 10000,
+tf.app.flags.DEFINE_integer('checkpoint_period', 1999,
                             "Number of batches in between checkpoints")
 
 tf.app.flags.DEFINE_string('dataset_label', '',
@@ -151,7 +151,7 @@ tf.app.flags.DEFINE_integer('label_size', 320,
 tf.app.flags.DEFINE_integer('label_size_x', 256,
                             "Good Image width in pixels. by default half label_size")
 
-tf.app.flags.DEFINE_integer('summary_period', 500,
+tf.app.flags.DEFINE_integer('summary_period', 2000,
                             "Number of batches between summary data dumps")
 
 tf.app.flags.DEFINE_integer('summary_train_period', 50,
@@ -175,16 +175,16 @@ tf.app.flags.DEFINE_integer('sample_test', -1,
 tf.app.flags.DEFINE_integer('sample_train', -1,
                             "Number of features to use for train. default value is -1 for use all samples except testing samples")
 
-tf.app.flags.DEFINE_integer('subsample_test', 8,
+tf.app.flags.DEFINE_integer('subsample_test', -1,
                             "Number of test sample to uniform sample. default value is -1 for using all test samples")
 
-tf.app.flags.DEFINE_integer('subsample_train', 1000,
-                            "Number of train sample to uniform sample. default value is -1 for using all train samples")
+tf.app.flags.DEFINE_integer('subsample_train', -1,
+                            "Number of train sample to uniform sample. default value is -1 for using all train samples, default was 1000")
                             
 tf.app.flags.DEFINE_string('train_dir', 'train',
                            "Output folder where training logs are dumped.")
 
-tf.app.flags.DEFINE_integer('train_time', 20,
+tf.app.flags.DEFINE_integer('train_time', 1500,
                             "Time in minutes to train the model")
 
 tf.app.flags.DEFINE_integer('axis_undersample', 1,
@@ -286,9 +286,9 @@ def setup_tensorflow(gpu_memory_fraction=1.0):
 
 # SummaryWriter is deprecated
 # tf.summary.FileWriter.
-    summary_writer = tf.summary.FileWriter(FLAGS.train_dir, sess.graph)
+    #summary_writer = tf.summary.FileWriter(FLAGS.train_dir, sess.graph)
 
-    return sess, summary_writer   
+    return sess ,None # summary_writer   
 
 def _demo():
     # Load checkpoint
@@ -296,7 +296,7 @@ def _demo():
         raise FileNotFoundError("Could not find folder `%s'" % (FLAGS.checkpoint_dir,))
 
     # Setup global tensorflow state
-    sess, summary_writer = setup_tensorflow()
+    sess, _oldwriter = setup_tensorflow()
 
     # Prepare directories
     filenames = prepare_dirs(delete_train_dir=False)
@@ -325,7 +325,7 @@ class TrainData(object):
 
 def _train():
     # Setup global tensorflow state
-    sess, summary_writer = setup_tensorflow()
+    sess , _oldwriter = setup_tensorflow()
 
     # image_size
     if FLAGS.sample_size_y>0:

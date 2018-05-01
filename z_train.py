@@ -73,12 +73,13 @@ def _summarize_progress(train_data, feature, label, gene_output,
         # gene_param['FLAGS'] = FLAGS.__dict__['__flags']
 
         # save json
+        '''
         filename = 'batch%06d_%s.json' % (batch, suffix)
         filename = os.path.join(FLAGS.train_dir, filename)
         with open(filename, 'w') as outfile:
             json.dump(gene_param, outfile)
         print("    Saved %s" % (filename,))
-
+        '''
 
 def _save_checkpoint(train_data, batch):
     td = train_data
@@ -148,12 +149,13 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
 
         #first train based on MSE and then GAN
-        '''if batch < 5e3+1:
+        if batch < 4e3+1:
            feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 1}
+        else if batch <8e3+1:
+           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : (1/np.sqrt(batch+400-5e3)) + 0.90}
         else:
-           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : (1/np.sqrt(batch+400-5e3)) + 0.95}'''
-	#get rid of MSE loss
-        feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 0}
+	   #get rid of MSE loss
+           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 0}
 
         
         # for training 
