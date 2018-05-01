@@ -94,7 +94,7 @@ tf.app.flags.DEFINE_integer('starting_batch', 0,
 tf.app.flags.DEFINE_string('checkpoint_dir', 'checkpoint',
                            "Output folder where checkpoints are dumped.")
 
-tf.app.flags.DEFINE_integer('checkpoint_period', 1999,
+tf.app.flags.DEFINE_integer('checkpoint_period', 999,
                             "Number of batches in between checkpoints")
 
 tf.app.flags.DEFINE_string('dataset_label', '',
@@ -151,7 +151,7 @@ tf.app.flags.DEFINE_integer('label_size', 320,
 tf.app.flags.DEFINE_integer('label_size_x', 256,
                             "Good Image width in pixels. by default half label_size")
 
-tf.app.flags.DEFINE_integer('summary_period', 2000,
+tf.app.flags.DEFINE_integer('summary_period', 1000,
                             "Number of batches between summary data dumps")
 
 tf.app.flags.DEFINE_integer('summary_train_period', 50,

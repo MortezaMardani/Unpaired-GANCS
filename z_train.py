@@ -1,4 +1,5 @@
 import numpy as np
+from PIL import Image
 import os.path
 import scipy.misc
 import tensorflow as tf
@@ -54,10 +55,12 @@ def _summarize_progress(train_data, feature, label, gene_output,
     print('save to image,', image.shape)
     filename = 'batch%06d_%s.png' % (batch, suffix)
     filename = os.path.join(FLAGS.train_dir, filename)
-    scipy.misc.toimage(image, cmin=0., cmax=1.).save(filename)
+    try:
+      scipy.misc.toimage(image, cmin=0., cmax=1.).save(filename)
+    except:
+      import pilutil
+      pilutil.toimage(image, cmin=0., cmax=1.).save(filename)
     print("    Saved %s" % (filename,))
-
-
 
     #gene_output_abs = np.abs(gene_output)
     # save layers and var_list
@@ -122,7 +125,6 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
     start_time  = time.time()
     done  = False
     batch = batchcount
-
     # batch info    
     batch_size = FLAGS.batch_size
     num_batch_train = num_sample_train / batch_size
@@ -151,7 +153,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         #first train based on MSE and then GAN
         if batch < 101:
            feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 1}
-        elif batch <6e3+1:
+        elif batch <4e3+1:
            feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : (1/np.sqrt(batch+400)) + 0.50}
         else:
 	   #get rid of MSE loss
@@ -256,4 +258,3 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
 
     _save_checkpoint(td, batch)
     print('Finished training!')
-
