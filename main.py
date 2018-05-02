@@ -145,11 +145,11 @@ tf.app.flags.DEFINE_integer('sample_size', 256,
 tf.app.flags.DEFINE_integer('sample_size_y', -1,
                             "Image sample width in pixels. by default half sample_size")
 
-tf.app.flags.DEFINE_integer('label_size', 320,
-                            "Good Image height in pixels.")
+tf.app.flags.DEFINE_integer('label_size', -1,
+                            "Good Image height in pixels. by default same as sample_size")
 
-tf.app.flags.DEFINE_integer('label_size_x', 256,
-                            "Good Image width in pixels. by default half label_size")
+tf.app.flags.DEFINE_integer('label_size_x', -1,
+                            "Good Image width in pixels. by default same as sample_size_y")
 
 tf.app.flags.DEFINE_integer('summary_period', 1000,
                             "Number of batches between summary data dumps")
@@ -334,7 +334,10 @@ def _train():
         image_size = [FLAGS.sample_size, FLAGS.sample_size/2]
 
     # label_size
-    label_size = [FLAGS.label_size, FLAGS.label_size_x]
+    if FLAGS.label_size<0:
+        label_size = [FLAGS.sample_size, FLAGS.sample_size_y]
+    else:
+        label_size = [FLAGS.label_size, FLAGS.label_size_x]
 
 
     # Prepare train and test directories (SEPARATE FOLDER)
