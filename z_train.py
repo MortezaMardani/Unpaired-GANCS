@@ -178,8 +178,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         if batch % 30 == 0:
             # Show we are alive
             elapsed = int(time.time() - start_time)/60
-            err_log = 'Elapsed[{0:3f}], Batch [{2:1f}], G_Loss[{3}], G_mse_Loss[{4:3.3f}], G_LS_Loss[{5:3.3f}],G_non_mse_Loss[{5:3.3f}], G_DC_Loss[{6:3.3f}], D_Real_Loss[{7:3.3f}], D_Fake_Loss[{8:3.3f}]'.format(
-                    elapsed, batch, gene_loss, gene_mse_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss)
+            err_log = 'Elapsed[{0:3f}], Batch [{1:1f}], G_Loss[{2}], G_mse_Loss[{3:3.3f}], G_LS_Loss[{4:3.3f}], G_DC_Loss[{5:3.3f}], D_Real_Loss[{6:3.3f}], D_Fake_Loss[{7:3.3f}]'.format(elapsed, batch, gene_loss, gene_mse_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss)
             print(err_log)
             # update err loss
             err_loss = [int(batch), float(gene_loss), float(gene_dc_loss), 

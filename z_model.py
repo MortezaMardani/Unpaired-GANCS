@@ -1090,7 +1090,7 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks):
     tf.summary.scalar('gene_fool_loss', gene_non_mse_l2)
     #tf.summary.scalar('gene_dc_loss', gene_dc_loss)
     #tf.summary.scalar('gene_ls_loss', gene_ls_loss)
-    tf.summary.scalar('gene_mixmse_loss', gene_mixmse_loss)
+    tf.summary.scalar('gene_L1_loss', gene_mixmse_loss)
 
 
     #list of loss (dummy)
