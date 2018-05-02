@@ -344,7 +344,7 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
 
     # Fully convolutional model
     mapsize = 3
-    layers  = [8, 16, 32, 64]#[64, 128, 256, 512]
+    layers  = [4, 8, 16, 32]#[8, 16, 32, 64]#[64, 128, 256, 512]
 
     old_vars = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
 
@@ -546,7 +546,7 @@ def _generator_encoder_decoder(sess, features, labels, channels, layer_output_sk
 
 def _generator_model_with_pool(sess, features, labels, channels, layer_output_skip=5):
     mapsize = 3
-    res_units  = [64, 128, 128] #[64, 32, 16]#[256, 128, 96]
+    res_units  = [32, 64, 64] #[64, 128, 128] #[64, 32, 16]#[256, 128, 96]
     layer_pooling = [1, 1, 0]
     print('use resnet conv-decov with pooling parameters:', res_units, layer_pooling)
     
@@ -626,7 +626,7 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
 
     #image_size = tf.shape(features)
     mapsize = 3
-    res_units  = [128, 128, 128, 128, 128] #[64, 32, 16]#[256, 128, 96]
+    res_units  = [64,64,64,64,64] #[128]*5 #[64, 32, 16]#[256, 128, 96]
     scale_changes = [0,0,0,0,0,0]
     print('use resnet without pooling:', res_units)
     old_vars = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
