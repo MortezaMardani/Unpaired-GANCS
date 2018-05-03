@@ -11,4 +11,4 @@ Batch [40000], G_Loss[0.06962931901216507], G_mse_Loss[16.926], G_LS_Loss[0.070]
 For exp5: exp5*.png gets better, but all illustrate noisy vertical lines, at 6000 grid became significant
 
 5/2 1411
-For exp6: ran 3x faster even with 4x larger batch size
+For exp6: ran 3x faster even with 4x larger batch size, 3h 20k batches. 

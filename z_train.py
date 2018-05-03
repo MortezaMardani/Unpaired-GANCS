@@ -151,10 +151,10 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
 
         #first train based on MSE and then GAN
-        if batch < 101:
+        if batch < 3000:
            feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 1}
-        elif batch <4e3+1:
-           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : (1/np.sqrt(batch+400)) + 0.50}
+        elif batch <3200:
+           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : (200-batch+3000)/200 } #1/np.sqrt(batch-3000) + 0.5 } 
         else:
 	   #get rid of MSE loss
            feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 0}
