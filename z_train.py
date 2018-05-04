@@ -207,15 +207,16 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 # ops = [td.gene_moutput, td.gene_mlayers, td.gene_var_list, td.disc_var_list, td.disc_layers]
                 # gene_output, gene_layers, gene_var_list, disc_var_list, disc_layers= td.sess.run(ops, feed_dict=feed_dict)       
                 
-                ops = [td.gene_moutput, td.gene_mlayers, td.disc_layers]
+                ops = [td.gene_moutput, td.gene_mlayers, td.disc_layers, td.gene_dc_loss]
                 
                 # get timing
                 forward_passing_time = time.time()
-                gene_output, gene_layers, disc_layers= td.sess.run(ops, feed_dict=feed_dict)       
+                gene_output, gene_layers, disc_layers, gene_dc_loss= td.sess.run(ops, feed_dict=feed_dict)       
                 inference_time = time.time() - forward_passing_time
-
+		
                 # print('gene_var_list',[x.shape for x in gene_var_list])
                 #print('gene_layers',[x.shape for x in gene_layers])
+		print("test time data consistency:", gene_dc_loss)
                 # print('disc_var_list',[x.shape for x in disc_var_list])
                 #print('disc_layers',[x.shape for x in disc_layers])
 
