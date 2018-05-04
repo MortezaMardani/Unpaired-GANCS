@@ -154,10 +154,10 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         if batch < 3000:
            feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 1}
         elif batch <3200:
-           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : (200-batch+3000)/200 } #1/np.sqrt(batch-3000) + 0.5 } 
+           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : -0.0045*batch + 14.5 } #1/np.sqrt(batch-3000) + 0.5 } 
         else:
 	   #get rid of MSE loss
-           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 0}
+           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 0.1}
 
         
         # for training 
@@ -207,16 +207,16 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 # ops = [td.gene_moutput, td.gene_mlayers, td.gene_var_list, td.disc_var_list, td.disc_layers]
                 # gene_output, gene_layers, gene_var_list, disc_var_list, disc_layers= td.sess.run(ops, feed_dict=feed_dict)       
                 
-                ops = [td.gene_moutput, td.gene_mlayers, td.disc_layers, td.gene_dc_loss]
+                ops = [td.gene_moutput, td.gene_mlayers, td.disc_layers]
                 
                 # get timing
                 forward_passing_time = time.time()
-                gene_output, gene_layers, disc_layers, gene_dc_loss= td.sess.run(ops, feed_dict=feed_dict)       
+                gene_output, gene_layers, disc_layers= td.sess.run(ops, feed_dict=feed_dict)       
                 inference_time = time.time() - forward_passing_time
 		
                 # print('gene_var_list',[x.shape for x in gene_var_list])
                 #print('gene_layers',[x.shape for x in gene_layers])
-		print("test time data consistency:", gene_dc_loss)
+                #print("test time data consistency:", gene_dc_loss): add td.gene_dc_loss in ops
                 # print('disc_var_list',[x.shape for x in disc_var_list])
                 #print('disc_layers',[x.shape for x in disc_layers])
 
@@ -245,7 +245,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
             # get train data
             ops = [td.gene_minimize, td.disc_minimize, td.gene_loss, td.gene_ls_loss, td.gene_dc_loss, td.disc_real_loss, td.disc_fake_loss, 
                    td.train_features, td.train_labels, td.gene_output]#, td.gene_var_list, td.gene_layers]
-            _, _, gene_loss, gene_dc_loss, gene_ls_loss, disc_real_loss, disc_fake_loss, train_feature, train_label, train_output, mask = td.sess.run(ops, feed_dict=feed_dict)
+            _, _, gene_loss, gene_dc_loss, gene_ls_loss, disc_real_loss, disc_fake_loss, train_feature, train_label, train_output = td.sess.run(ops, feed_dict=feed_dict)
             print('train sample size:',train_feature.shape, train_label.shape, train_output.shape)
             _summarize_progress(td, train_feature, train_label, train_output, batch%num_batch_train, 'train')
 

@@ -275,7 +275,7 @@ def setup_tensorflow(gpu_memory_fraction=1.0):
     config = tf.ConfigProto(log_device_placement=FLAGS.log_device_placement)
     config.gpu_options.per_process_gpu_memory_fraction = min(gpu_memory_fraction, FLAGS.gpu_memory_fraction)
     sess = tf.Session(config=config)
-    print('TF session setup for gpu usage cap of {0}'.format(config.gpu_options.per_process_gpu_memory_fraction))
+    #print('TF session setup for gpu usage cap of {0}'.format(config.gpu_options.per_process_gpu_memory_fraction))
 
     # Initialize rng with a deterministic seed
     with sess.graph.as_default():

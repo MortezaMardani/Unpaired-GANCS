@@ -15,7 +15,7 @@ For exp6: ran 3x faster even with 4x larger batch size, 3h 20k batches.
 For exp7: similar loss trend as exp6, disc_fake plateaus at 10k batch.
 
 5/4:
-check test time data consistency
-export train example from exp7 batch 47k
+check test time data consistency: 1.2e-09
+export train example from exp7 batch 47k: as bad as test
 try 3k pure mse and 0.1 mse afterwards
 try LReLU?
