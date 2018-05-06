@@ -21,5 +21,5 @@ try 3k pure mse and 0.1 mse after 3.2k (exp7): paused after ~7k
 exp8 and exp9 converged
 
 5/5:
-3k pure mse then pure GAN for unmasked: 
+exp 10 converged
 try LReLU and batch size of 4
