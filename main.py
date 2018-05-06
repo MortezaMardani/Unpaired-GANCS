@@ -151,7 +151,7 @@ tf.app.flags.DEFINE_integer('label_size', -1,
 tf.app.flags.DEFINE_integer('label_size_x', -1,
                             "Good Image width in pixels. by default same as sample_size_y")
 
-tf.app.flags.DEFINE_integer('summary_period', 1000,
+tf.app.flags.DEFINE_integer('summary_period', 2000,
                             "Number of batches between summary data dumps")
 
 tf.app.flags.DEFINE_integer('summary_train_period', 50,
