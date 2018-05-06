@@ -212,7 +212,10 @@ class Model:
         # Residual block
         for _ in range(num_layers):
             self.add_batch_norm()
-            self.add_relu()
+            if (FLAGS.activation=='lrelu'):
+                self.add_lrelu()
+            else:
+                self.add_relu()
             self.add_conv2d(num_units, mapsize=mapsize, stride=1, stddev_factor=stddev_factor)
 
         self.add_sum(bypass)
@@ -237,11 +240,17 @@ class Model:
 
         # Bottleneck residual block
         self.add_batch_norm()
-        self.add_relu()
+        if (FLAGS.activation=='lrelu'):
+            self.add_lrelu()
+        else:
+            self.add_relu()
         self.add_conv2d(num_units//4, mapsize=1,       stride=1,      stddev_factor=2.)
-
         self.add_batch_norm()
-        self.add_relu()
+        if (FLAGS.activation=='lrelu'):
+            self.add_lrelu()
+        else:
+            self.add_relu()
+            
         if transpose:
             self.add_conv2d_transpose(num_units//4,
                                       mapsize=mapsize,
@@ -254,7 +263,10 @@ class Model:
                             stddev_factor=2.)
 
         self.add_batch_norm()
-        self.add_relu()
+        if (FLAGS.activation=='lrelu'):
+            self.add_lrelu()
+        else:
+            self.add_relu()
         self.add_conv2d(num_units,    mapsize=1,       stride=1,      stddev_factor=2.)
 
         self.add_sum(bypass)
@@ -378,16 +390,25 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
 
         model.add_conv2d(nunits, mapsize=mapsize, stride=2, stddev_factor=stddev_factor)
         model.add_batch_norm()
-        model.add_relu()
+        if (FLAGS.activation=='lrelu'):
+            model.add_lrelu()
+        else:
+            model.add_relu()
 
     # Finalization a la "all convolutional net"
     model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=stddev_factor)
     model.add_batch_norm()
-    model.add_relu()
+    if (FLAGS.activation=='lrelu'):
+        model.add_lrelu()
+    else:
+        model.add_relu()
 
     model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=stddev_factor)
     model.add_batch_norm()
-    model.add_relu()
+    if (FLAGS.activation=='lrelu'):
+        model.add_lrelu()
+    else:
+        model.add_relu()
 
     # Linearly map to real/fake and return average score
     # (softmax will be applied later)
@@ -564,11 +585,12 @@ def _generator_model_with_pool(sess, features, labels, channels, layer_output_sk
         list_layer_before_pool.append(model.outputs[-1])
         
         # conv 
-        # model.add_batch_norm()
-        # model.add_relu()
-        # model.add_conv2d_transpose(nunits, mapsize=mapsize, stride=1, stddev_factor=1.)
         model.add_batch_norm()
-        model.add_relu()
+        if (FLAGS.activation=='lrelu'):
+            model.add_lrelu()
+        else:
+            model.add_relu()
+        # model.add_conv2d_transpose(nunits, mapsize=mapsize, stride=1, stddev_factor=1.)
 
         # pooling/striding
         stride = layer_pooling[index_layer]+1
@@ -589,7 +611,10 @@ def _generator_model_with_pool(sess, features, labels, channels, layer_output_sk
             model.add_upscale()
 
         model.add_batch_norm()
-        model.add_relu()
+        if (FLAGS.activation=='lrelu'):
+            model.add_lrelu()
+        else:
+            model.add_relu()
         model.add_conv2d_transpose(nunits, mapsize=mapsize, stride=1, stddev_factor=1.)
 
         # concat
@@ -599,11 +624,17 @@ def _generator_model_with_pool(sess, features, labels, channels, layer_output_sk
     # conv 
     nunits = res_units[-1]
     model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=2.)
-    model.add_relu()
+    if (FLAGS.activation=='lrelu'):
+        model.add_lrelu()
+    else:
+        model.add_relu()
 
     # filter to channel number
     model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=2.)
-    model.add_relu()
+    if (FLAGS.activation=='lrelu'):
+        model.add_lrelu()
+    else:
+        model.add_relu()
 
     # output
     model.add_conv2d(channels, mapsize=1, stride=1, stddev_factor=1.)
@@ -647,7 +678,10 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
             model.add_upscale()
 
         model.add_batch_norm()
-        model.add_relu()
+        if (FLAGS.activation=='lrelu'):
+            model.add_lrelu()
+        else:
+            model.add_relu()
         model.add_conv2d_transpose(nunits, mapsize=mapsize, stride=1, stddev_factor=1.)
 
 
@@ -655,11 +689,17 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
     nunits = res_units[-1]
     model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=2.)
     # Worse: model.add_batch_norm()
-    model.add_relu()
+    if (FLAGS.activation=='lrelu'):
+        model.add_lrelu()
+    else:
+        model.add_relu()
 
     model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=2.)
     # Worse: model.add_batch_norm()
-    model.add_relu()
+    if (FLAGS.activation=='lrelu'):
+        model.add_lrelu()
+    else:
+        model.add_relu()
 
     # Last layer is sigmoid with no batch normalization
     model.add_conv2d(channels, mapsize=1, stride=1, stddev_factor=1.)
