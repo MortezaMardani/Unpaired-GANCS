@@ -54,8 +54,11 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 40 --train_dir ./train_dir/exp7 --checkpoint_dir ./checkpoint/ckpt07 --starting_batch 3000
 
 
-8th exp (5/4 1730): same as above, except no downsampling, 3.2k+ keep 0.8 mse, converged after 10k
+8th exp (5/4 1730): same as above, except no downsampling, 3.2k+ keep 0.8 mse, converged after 8k
+
 9th exp (5/4 1920): same as 7th, except 3.2k+ keep 0.8 mse, converged  after 50k 
+
+10th exp (5/5 2100): same as 6th, except no undersampling, converged after 9k
 
 
 Given command on group's server: python3 srez_main.py --run train --dataset_train /mnt/raid5/morteza/datasets/Knee-highres-19cases-train-test/train --dataset_test /mnt/raid5/morteza/datasets/Knee-highres-19cases-train-test/test --sampling_pattern /mnt/raid5/morteza/datasets/Knee-highres-19cases-train-test/mask_5fold_320_256_knee_vdrad.mat --sample_size 320 --sample_size_y 256 --batch_size 2 --summary_period 50000 --sample_test -1 --sample_train -1 --subsample_test -1 --subsample_train -1 --train_time 3000 --train_dir /mnt/raid5/morteza/train_save_morteza_knee/train_save_all_0.75l2_0.25GAN_5fold_128128128128128gen_1copies --gpu_memory_fraction 1.0 --hybrid_disc 0
