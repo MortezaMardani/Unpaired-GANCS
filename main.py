@@ -6,29 +6,6 @@ python main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom \
                     --dataset_output  /home/enhaog/GANCS/srez/dataset_MRI/phantom \
                     --run train \
 
-python3 main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom --batch_size 8 --run train --summary_period 123 --sample_size 256 --train_time 10  --train_dir train_save_all                  
-python main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom2 \
-                    --batch_size 4 --run train --summary_period 125 \
-                    --sample_size 256 \
-                    --train_time 10  \
-                    --sample_test 32 --sample_train 1000 \
-                    --train_dir tmp_specify_train  \
-                    --R_factor 8 \
-                    --R_alpha 3 \
-                    % R_seed<0 means non-fixed random seed
-                    --R_seed -1 
-
-#DCE
-python main.py --run train \
-                    --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/abdominal_DCE \
-                    --sample_size 200 --sample_size_y 100 \
-                    --sampling_pattern /home/enhaog/GANCS/srez/dataset_MRI/sampling_pattern_DCE/mask_2dvardesnity_radiaview_4fold.mat \
-                    --batch_size 8  --summary_period 125 \
-                    --sample_test 32 --sample_train 30000 \
-                    --train_time 300  \
-                    --train_dir train_DCE_0508_R4_MSE01 \
-                    --gpu_memory_fraction 0.5
-
 # with sub sampling
 python main.py --run train \
                     --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/abdominal_DCE \
@@ -41,7 +18,6 @@ python main.py --run train \
                     --train_dir train_DCE_0509_R4_MSE10 \
                     --gpu_memory_fraction 0.4 \
                     --hybrid_disc 0   
-
 
 python3 main.py  --run train \
                       --dataset_train /mnt/raid5/morteza/datasets/Abdominal-DCE-616cases/train\   
@@ -59,9 +35,8 @@ python3 main.py  --run train \
                       --R_alpha 2 \ 
                       --R_factor 10 \
                       --train_dir /mnt/raid5/morteza/GANCS-MRI/train_save_all
-
-
 """
+
 #import z_demo
 import z_input
 import z_model
@@ -81,9 +56,14 @@ FLAGS = tf.app.flags.FLAGS
 
 # Configuration (alphabetically)
 
+tf.app.flags.DEFINE_string('activation','relu',
+                            "activation to use for both disc and gene")
 
-tf.app.flags.DEFINE_integer('number_of_copies', 3,
-                            "Number of repeatitions for the generator network.")
+tf.app.flags.DEFINE_string('architecture','resnet',
+                            "model arch used for generator, ex: resnet, aec, pool")
+
+tf.app.flags.DEFINE_integer('axis_undersample', 1,
+                            "which axis to undersample")
 
 tf.app.flags.DEFINE_integer('batch_size', 16,
                             "Number of samples per batch.")
@@ -127,6 +107,12 @@ tf.app.flags.DEFINE_float('gene_dc_factor', 0,
 #tf.app.flags.DEFINE_float('gene_mse_factor', 0,
 #                         "Multiplier for generator MSE loss for regression accuracy, weighting MSE VS GAN-loss")
 
+tf.app.flags.DEFINE_float('gpu_memory_fraction', 0.97,
+                            "specified the max gpu fraction used per device")
+
+tf.app.flags.DEFINE_integer('hybrid_disc', 0,
+                            "whether/level to augment discriminator input to image+kspace hybrid space.")
+
 tf.app.flags.DEFINE_float('learning_beta1', 0.9,
                           "Beta1 parameter used for AdamOptimizer")
 
@@ -138,6 +124,9 @@ tf.app.flags.DEFINE_integer('learning_rate_half_life', 100000,
 
 tf.app.flags.DEFINE_bool('log_device_placement', False,
                          "Log the device where variables are placed.")
+
+tf.app.flags.DEFINE_integer('number_of_copies', 3,
+                            "Number of repeatitions for the generator network.")
 
 tf.app.flags.DEFINE_integer('sample_size', 256,
                             "Image sample height in pixels.")
@@ -181,14 +170,14 @@ tf.app.flags.DEFINE_integer('subsample_test', -1,
 tf.app.flags.DEFINE_integer('subsample_train', -1,
                             "Number of train sample to uniform sample. default value is -1 for using all train samples, default was 1000")
                             
+tf.app.flags.DEFINE_string('sampling_pattern', '',
+                            "specifed file path for undersampling")
+
 tf.app.flags.DEFINE_string('train_dir', 'train',
                            "Output folder where training logs are dumped.")
 
 tf.app.flags.DEFINE_integer('train_time', 1500,
                             "Time in minutes to train the model")
-
-tf.app.flags.DEFINE_integer('axis_undersample', 1,
-                            "which axis to undersample")
 
 tf.app.flags.DEFINE_float('R_factor', 4,
                             "desired reducton/undersampling factor")
@@ -199,17 +188,6 @@ tf.app.flags.DEFINE_float('R_alpha', 2,
 tf.app.flags.DEFINE_integer('R_seed', -1,
                             "specifed sampling seed to generate undersampling, -1 for randomized sampling")
 
-tf.app.flags.DEFINE_string('sampling_pattern', '',
-                            "specifed file path for undersampling")
-
-tf.app.flags.DEFINE_float('gpu_memory_fraction', 0.97,
-                            "specified the max gpu fraction used per device")
-
-tf.app.flags.DEFINE_integer('hybrid_disc', 0,
-                            "whether/level to augment discriminator input to image+kspace hybrid space.")
-
-tf.app.flags.DEFINE_string('architecture','resnet',
-                            "model arch used for generator, ex: resnet, aec, pool")
 
 
 
