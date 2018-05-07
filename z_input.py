@@ -133,7 +133,10 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
 
     # apply undersampling mask
     kspace_input = tf.fft2d(tf.cast(image_input,tf.complex64))
-    kspace_zpad = kspace_input * DEFAULT_MAKS_TF_c
+    if (FLAGS.sampling_pattern!="nomask"):
+      kspace_zpad = kspace_input * DEFAULT_MAKS_TF_c
+    else:
+      kspace_zpad = kspace_input
     # zpad undersampled image for input
     image_zpad = tf.ifft2d(kspace_zpad)
     image_zpad_real = tf.real(image_zpad)
