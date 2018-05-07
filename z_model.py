@@ -717,11 +717,9 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
         #mask_kspace = tf.cast(masks, dtype=tf.float32) #tf.greater(tf.abs(feature_kspace),threshold_zero)  
 
         #print('sampling_rate', sess.run(tf.reduce_sum(tf.abs(mask_kspace)) / tf.size(mask_kspace)))
-      
         mask_kspace = tf.cast(masks, tf.complex64) * mix_DC
         #print('sampling_size', sess.run(tf.reduce_sum(tf.abs(mask_kspace))))
         #print('mask_kspace', sess.run(mask_kspace))
-
         projected_kspace = feature_kspace * mask_kspace
 
         # add dc layers
@@ -811,9 +809,12 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         function_generator = lambda x,y,z,m,w: _generator_model_with_scale(x,y,z,m,w,
                                                 num_dc_layers=num_dc_layers, layer_output_skip=7)
     else:
-        function_generator = lambda x,y,z,m,w: _generator_model_with_scale(x,y,z,m,w,
+        if (FLAGS.sampling_pattern!="nomask"):
+            function_generator = lambda x,y,z,m,w: _generator_model_with_scale(x,y,z,m,w,
                                                 num_dc_layers=0, layer_output_skip=7)
-
+        else:  # with unmasked input, remove dc
+            function_generator = lambda x,y,z,m,w: _generator_model_with_scale(x,y,z,m,w,
+                                                num_dc_layers=-1, layer_output_skip=7)
 
 
     with tf.variable_scope('gene') as scope:
