@@ -18,8 +18,9 @@ For exp7: similar loss trend as exp6, disc_fake plateaus at 10k batch.
 check test time data consistency: 1.2e-09
 export train example from exp7 batch 47k: as bad as test
 try 3k pure mse and 0.1 mse after 3.2k (exp7): paused after ~7k
-exp8 and exp9 converged
+exp8 and exp9 converged: test image exp8b4000 and exp8b10000 looked very similar, both not bad
 
 5/5:
 exp 10 converged
-try LReLU and batch size of 4
+
+TODO:try LReLU and batch size of 4
