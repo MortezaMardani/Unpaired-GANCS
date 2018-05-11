@@ -669,7 +669,7 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
     for ru in range(len(res_units)-1):
         nunits  = res_units[ru]
 
-        for j in range(2):
+        for j in range(1):  # changed from range(2) (5/11)
             model.add_residual_block(nunits, mapsize=mapsize)
 
         # Spatial upscale (see http://distill.pub/2016/deconv-checkerboard/)
@@ -704,7 +704,10 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
     # Last layer is sigmoid with no batch normalization
     model.add_conv2d(channels, mapsize=1, stride=1, stddev_factor=1.)
     #model.add_sigmoid()
-
+  
+    # Skip connection from input to output, skipping the whole gene (5/11)
+    model.add_sum(features)
+    
     # add dc connection for each block
     if num_dc_layers >= 0:
         # parameters
