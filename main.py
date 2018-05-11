@@ -437,7 +437,8 @@ def _train():
     [gene_minput, gene_moutput, gene_output, gene_var_list, gene_layers, gene_mlayers, disc_real_output, disc_fake_output, disc_var_list, disc_layers] = \
             z_model.create_model(sess, noisy_train_features, train_labels, train_masks, architecture=FLAGS.architecture)
 
-    gene_loss, gene_dc_loss, gene_ls_loss, list_gene_losses, gene_mse_factor = z_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks)
+    gene_loss, gene_dc_loss, gene_ls_loss, list_gene_losses, gene_mse_factor = \
+                     z_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks)
     disc_real_loss, disc_fake_loss = \
                      z_model.create_discriminator_loss(disc_real_output, disc_fake_output)
     disc_loss = tf.add(disc_real_loss, disc_fake_loss, name='disc_loss')
