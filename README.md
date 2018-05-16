@@ -34,7 +34,7 @@ python3 main.py --run train --dataset_train ./Knee-highresolution-19cases/train 
 python3 srez_main.py --run train --dataset_train ./Knee-highresolution-19cases/train --dataset_test ./Knee-highresolution-19cases/test --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_320_256_knee_vdrad.mat --sample_size 320 --sample_size_y 256 --batch_size 3 --summary_period 20000 --sample_test 100 --sample_train -1 --subsample_test -1 --subsample_train -1 --train_time 1500 --train_dir ./train_dir/mail  --checkpoint_period 5000 --checkpoint_dir ./checkpoint/ckpt03 --permutation_split True
 
 
-4th exp (4/30 2007): first 100 pure L1, 100~4k 0.54 decay to 0.52, 4k~8k pure GAN
+4th exp (4/30 2007): first 100 pure L1, 100\~4k 0.54 decay to 0.52, 4k\~8k pure GAN
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train --dataset_test ./Knee-highresolution-19cases/test --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_320_256_knee_vdrad.mat --sample_size 320 --sample_size_y 256 --batch_size 2 --sample_test 50 --train_dir ./train_dir/exp4 --checkpoint_dir ./checkpoint/ckpt04
 
