@@ -166,6 +166,11 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         # ops = [td.gene_minimize, td.disc_minimize, td.gene_loss, td.disc_real_loss, td.disc_fake_loss, 
         #        td.train_features, td.train_labels, td.gene_output]#, td.gene_var_list, td.gene_layers]
         # _, _, gene_loss, disc_real_loss, disc_fake_loss, train_feature, train_label, train_output = td.sess.run(ops, feed_dict=feed_dict)
+
+	# train disc multiple times
+	for disc_iter in range(3):
+	    td.sess.run([td.disc_minimize],feed_dict=feed_dict)
+	# then train both disc and gene once
         ops = [td.gene_minimize, td.disc_minimize, summary_op, td.gene_loss, td.gene_ls_loss, td.gene_dc_loss, td.disc_real_loss, td.disc_fake_loss, td.list_gene_losses]                   
         _, _, fet_sum,gene_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss, list_gene_losses = td.sess.run(ops, feed_dict=feed_dict)
         sum_writer.add_summary(fet_sum,batch)
