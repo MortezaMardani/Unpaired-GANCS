@@ -188,6 +188,9 @@ tf.app.flags.DEFINE_float('R_alpha', 2,
 tf.app.flags.DEFINE_integer('R_seed', -1,
                             "specifed sampling seed to generate undersampling, -1 for randomized sampling")
 
+tf.app.flags.DEFINE_integer('use_patches', Flase,
+                            "whether to patch generator output when feeding to disc")
+
 
 
 
