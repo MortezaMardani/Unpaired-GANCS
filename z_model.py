@@ -962,21 +962,32 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         gene_moutput = tf.reshape(gene_moutput_real, [FLAGS.batch_size, rows, cols, 2])
         gene_mlayers = gene_mlayers_1
 
- 
 
     # Discriminator with real data
     disc_real_input = tf.identity(labels, name='disc_real_input')
-    if FLAGS.use_patches:
-        disc_real_input = disc_real_input[:,:,14:FLAGS.sample_size_y-14,:]
 
     # TBD: Is there a better way to instance the discriminator?
     with tf.variable_scope('disc') as scope:
         #print('hybrid_disc', FLAGS.hybrid_disc)
-        disc_real_output, disc_var_list, disc_layers = \
+        
+        if FLAGS.use_patches:
+            patch_list=[]
+            r=int(FLAGS.sample_size/4)
+            c=int(FLAGS.sample_size_y/4)
+            for i in range(4):
+                for j in range(4):
+                    disc_input_patch=disc_real_input[:, r*i:r*(i+1) ,c*j:c*(j+1) ,:]
+                    disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
+                    patch_list.append(disc_real_patch)
+            disc_real_output=tf.stack(patch_list)
+            #print("patch and stacked fake_out SHAPE!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
+        else:
+            disc_real_output, disc_var_list, disc_layers = \
                 _discriminator_model(sess, features, disc_real_input, hybrid_disc=FLAGS.hybrid_disc)
 
         scope.reuse_variables()
         gene_output_abs = tf.abs(gene_output)
+        
         if FLAGS.use_patches:
             patch_list=[]
             r=int(FLAGS.sample_size/4)
@@ -1167,19 +1178,20 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks):
 def create_discriminator_loss(disc_real_output, disc_fake_output):
     # I.e. did we correctly identify the input as real or not?
     # cross_entropy_real = tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_real_output, labels=tf.ones_like(disc_real_output))
-    # disc_real_loss     = tf.reduce_mean(cross_entropy_real, name='disc_real_loss')
-    
+    # disc_real_loss     = tf.reduce_mean(cross_entropy_real, name='disc_real_loss') 
     # cross_entropy_fake = tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_fake_output, labels=tf.zeros_like(disc_fake_output))
     # disc_fake_loss     = tf.reduce_mean(cross_entropy_fake, name='disc_fake_loss')
-
-    # ls loss
+    
     ls_loss_real = tf.square(disc_real_output - tf.ones_like(disc_real_output))
-    disc_real_loss = tf.reduce_mean(ls_loss_real, name='disc_real_loss')
+    # ls loss
+    if FLAGS.use_patches:
+        disc_real_loss = tf.squeeze(tf.reduce_mean(ls_loss_real, axis=[0,1], name='disc_real_loss'))
+    else:
+        disc_real_loss = tf.reduce_mean(ls_loss_real, name='disc_real_loss')
     
     ls_loss_fake = tf.square(disc_fake_output)
     if FLAGS.use_patches:
         disc_fake_loss = tf.squeeze(tf.reduce_mean(ls_loss_fake, axis=[0,1], name='disc_fake_loss'))
-
     else:
         disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
 
