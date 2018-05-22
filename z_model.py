@@ -212,7 +212,7 @@ class Model:
         # Residual block
         for _ in range(num_layers):
             self.add_batch_norm()
-            if (FLAGS.activation=='lrelu'):
+            if (FLAGS.activation_G=='lrelu'):
                 self.add_lrelu()
             else:
                 self.add_relu()
@@ -240,13 +240,13 @@ class Model:
 
         # Bottleneck residual block
         self.add_batch_norm()
-        if (FLAGS.activation=='lrelu'):
+        if (FLAGS.activation_G=='lrelu'):
             self.add_lrelu()
         else:
             self.add_relu()
         self.add_conv2d(num_units//4, mapsize=1,       stride=1,      stddev_factor=2.)
         self.add_batch_norm()
-        if (FLAGS.activation=='lrelu'):
+        if (FLAGS.activation_G=='lrelu'):
             self.add_lrelu()
         else:
             self.add_relu()
@@ -263,7 +263,7 @@ class Model:
                             stddev_factor=2.)
 
         self.add_batch_norm()
-        if (FLAGS.activation=='lrelu'):
+        if (FLAGS.activation_G=='lrelu'):
             self.add_lrelu()
         else:
             self.add_relu()
@@ -586,7 +586,7 @@ def _generator_model_with_pool(sess, features, labels, channels, layer_output_sk
         
         # conv 
         model.add_batch_norm()
-        if (FLAGS.activation=='lrelu'):
+        if (FLAGS.activation_G=='lrelu'):
             model.add_lrelu()
         else:
             model.add_relu()
@@ -611,7 +611,7 @@ def _generator_model_with_pool(sess, features, labels, channels, layer_output_sk
             model.add_upscale()
 
         model.add_batch_norm()
-        if (FLAGS.activation=='lrelu'):
+        if (FLAGS.activation_G=='lrelu'):
             model.add_lrelu()
         else:
             model.add_relu()
@@ -624,14 +624,14 @@ def _generator_model_with_pool(sess, features, labels, channels, layer_output_sk
     # conv 
     nunits = res_units[-1]
     model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=2.)
-    if (FLAGS.activation=='lrelu'):
+    if (FLAGS.activation_G=='lrelu'):
         model.add_lrelu()
     else:
         model.add_relu()
 
     # filter to channel number
     model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=2.)
-    if (FLAGS.activation=='lrelu'):
+    if (FLAGS.activation_G=='lrelu'):
         model.add_lrelu()
     else:
         model.add_relu()
@@ -678,7 +678,7 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
             model.add_upscale()
 
         model.add_batch_norm()
-        if (FLAGS.activation=='lrelu'):
+        if (FLAGS.activation_G=='lrelu'):
             model.add_lrelu()
         else:
             model.add_relu()
@@ -689,14 +689,14 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
     nunits = res_units[-1]
     model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=2.)
     # Worse: model.add_batch_norm()
-    if (FLAGS.activation=='lrelu'):
+    if (FLAGS.activation_G=='lrelu'):
         model.add_lrelu()
     else:
         model.add_relu()
 
     model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=2.)
     # Worse: model.add_batch_norm()
-    if (FLAGS.activation=='lrelu'):
+    if (FLAGS.activation_G=='lrelu'):
         model.add_lrelu()
     else:
         model.add_relu()

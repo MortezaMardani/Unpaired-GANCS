@@ -57,7 +57,10 @@ FLAGS = tf.app.flags.FLAGS
 # Configuration (alphabetically)
 
 tf.app.flags.DEFINE_string('activation','relu',
-                            "activation to use for both disc and gene")
+                            "activation to use for disc")
+
+tf.app.flags.DEFINE_string('activation_G','relu',
+                            "activation to use for gene")
 
 tf.app.flags.DEFINE_string('architecture','resnet',
                             "model arch used for generator, ex: resnet, aec, pool")
