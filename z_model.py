@@ -977,15 +977,16 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         gene_output_abs = tf.abs(gene_output)
         if FLAGS.use_patches:
             patch_list=[]
-            r=gene_output_abs.get_shape()[1]/4
-            c=gene_output_abs.get_shape()[2]/4
+            r=int(FLAGS.sample_size/4)
+            c=int(FLAGS.sample_size_y/4)
+            #print("Row Col per patch !!!!!", r,c)
             for i in range(4):
                 for j in range(4):
                     gene_output_patch=gene_output_abs[:, r*i:r*(i+1) ,c*j:c*(j+1) ,:]
                     disc_fake_patch,_,_=_discriminator_model(sess, features, gene_output_patch, hybrid_disc=FLAGS.hybrid_disc)
                     patch_list.append(disc_fake_patch)
             disc_fake_output=tf.stack(patch_list)
-            print("patch SHAPE!!!!!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
+            #print("patch and stacked fake_out SHAPE!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
         else:
             disc_fake_output, _, _ = _discriminator_model(sess, features, gene_output_abs, hybrid_disc=FLAGS.hybrid_disc)
 
@@ -1086,12 +1087,11 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks):
     ls_loss = tf.square(disc_output - tf.ones_like(disc_output))
     
     if FLAGS.use_patches:
-        print("LS SHAPE!!!!!!", ls_loss.get_shape())
-        gene_ls_loss  = tf.reduce_mean(ls_loss, axis=[0,1], name='gene_ls_loss')
-        gene_ce_loss  = tf.reduce_mean(cross_entropy, axis=[0,1], name='gene_ce_loss')
+        gene_ls_loss = tf.squeeze(tf.reduce_mean(ls_loss, axis=[0,1], name='gene_ls_loss'))
+        gene_ce_loss = tf.squeeze(tf.reduce_mean(cross_entropy, axis=[0,1], name='gene_ce_loss'))
     else:
-        gene_ls_loss  = tf.reduce_mean(ls_loss, name='gene_ls_loss')
-        gene_ce_loss  = tf.reduce_mean(cross_entropy, name='gene_ce_loss')
+        gene_ls_loss = tf.reduce_mean(ls_loss, name='gene_ls_loss')
+        gene_ce_loss = tf.reduce_mean(cross_entropy, name='gene_ce_loss')
 
 
     # I.e. does the result look like the feature?
@@ -1176,8 +1176,8 @@ def create_discriminator_loss(disc_real_output, disc_fake_output):
     
     ls_loss_fake = tf.square(disc_fake_output)
     if FLAGS.use_patches:
-        print("disc_fake_loss SHAPE!!!!!!", disc_fake_loss.get_shape())
-        disc_fake_loss = tf.reduce_mean(ls_loss_fake, axis=[0,1], name='disc_fake_loss')
+        disc_fake_loss = tf.squeeze(tf.reduce_mean(ls_loss_fake, axis=[0,1], name='disc_fake_loss'))
+
     else:
         disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
 
