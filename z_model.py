@@ -975,7 +975,18 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
 
         scope.reuse_variables()
         gene_output_abs = tf.abs(gene_output)
-        disc_fake_output, _, _ = _discriminator_model(sess, features, gene_output_abs, hybrid_disc=FLAGS.hybrid_disc)
+        if FLAGS.use_patches:
+            disc_fake_output=[]
+            r=gene_output_abs.get_shape()[1]/4
+            c=gene_output_abs.get_shape()[2]/4
+            for i in range(4):
+                for j in range(4):
+                    gene_output_patch=gene_output_abs[:, r*i:r*(i+1) ,c*j:c*(j+1) ,:]
+                    disc_fake_patch,_,_=_discriminator_model(sess, features, gene_output_patch, hybrid_disc=FLAGS.hybrid_disc)
+                    disc_fake_output.append(disc_fake_patch)
+            print("patch SHAPE!!!!!!!!!",disc_fake_patch.shape)
+        else:
+            disc_fake_output, _, _ = _discriminator_model(sess, features, gene_output_abs, hybrid_disc=FLAGS.hybrid_disc)
 
     return [gene_minput, gene_moutput, gene_output, gene_var_list, gene_layers, gene_mlayers,
             disc_real_output, disc_fake_output, disc_var_list, disc_layers]    
