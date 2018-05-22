@@ -976,15 +976,16 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         scope.reuse_variables()
         gene_output_abs = tf.abs(gene_output)
         if FLAGS.use_patches:
-            disc_fake_output=[]
+            patch_list=[]
             r=gene_output_abs.get_shape()[1]/4
             c=gene_output_abs.get_shape()[2]/4
             for i in range(4):
                 for j in range(4):
                     gene_output_patch=gene_output_abs[:, r*i:r*(i+1) ,c*j:c*(j+1) ,:]
                     disc_fake_patch,_,_=_discriminator_model(sess, features, gene_output_patch, hybrid_disc=FLAGS.hybrid_disc)
-                    disc_fake_output.append(disc_fake_patch)
-            print("patch SHAPE!!!!!!!!!",disc_fake_patch.shape)
+                    patch_list.append(disc_fake_patch)
+            disc_fake_output=tf.stack(patch_list)
+            print("patch SHAPE!!!!!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
         else:
             disc_fake_output, _, _ = _discriminator_model(sess, features, gene_output_abs, hybrid_disc=FLAGS.hybrid_disc)
 
@@ -1080,11 +1081,18 @@ def loss_DSSIS_tf11(y_true, y_pred, patch_size=5, batch_size=-1):
 def create_generator_loss(disc_output, gene_output, features, labels, masks):
     # I.e. did we fool the discriminator?
     cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_output, labels=tf.ones_like(disc_output))
-    gene_ce_loss  = tf.reduce_mean(cross_entropy, name='gene_ce_loss')
 
     # LS cost
     ls_loss = tf.square(disc_output - tf.ones_like(disc_output))
-    gene_ls_loss  = tf.reduce_mean(ls_loss, name='gene_ls_loss')
+    
+    if FLAGS.use_patches:
+        print("LS SHAPE!!!!!!", ls_loss.get_shape())
+        gene_ls_loss  = tf.reduce_mean(ls_loss, axis=[0,1], name='gene_ls_loss')
+        gene_ce_loss  = tf.reduce_mean(cross_entropy, axis=[0,1], name='gene_ce_loss')
+    else:
+        gene_ls_loss  = tf.reduce_mean(ls_loss, name='gene_ls_loss')
+        gene_ce_loss  = tf.reduce_mean(cross_entropy, name='gene_ce_loss')
+
 
     # I.e. does the result look like the feature?
     # K = int(gene_output.get_shape()[1])//int(features.get_shape()[1])
@@ -1165,9 +1173,13 @@ def create_discriminator_loss(disc_real_output, disc_fake_output):
     # ls loss
     ls_loss_real = tf.square(disc_real_output - tf.ones_like(disc_real_output))
     disc_real_loss = tf.reduce_mean(ls_loss_real, name='disc_real_loss')
-
+    
     ls_loss_fake = tf.square(disc_fake_output)
-    disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
+    if FLAGS.use_patches:
+        print("disc_fake_loss SHAPE!!!!!!", disc_fake_loss.get_shape())
+        disc_fake_loss = tf.reduce_mean(ls_loss_fake, axis=[0,1], name='disc_fake_loss')
+    else:
+        disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
 
     # log to tensorboard
     tf.summary.scalar('disc_real_loss',disc_real_loss)
