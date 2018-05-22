@@ -128,6 +128,9 @@ tf.app.flags.DEFINE_integer('learning_rate_half_life', 100000,
 tf.app.flags.DEFINE_bool('log_device_placement', False,
                          "Log the device where variables are placed.")
 
+tf.app.flags.DEFINE_integer('mse_batch', 0,
+                            "Number of batches to run with pure mse loss.")
+
 tf.app.flags.DEFINE_integer('number_of_copies', 3,
                             "Number of repeatitions for the generator network.")
 
