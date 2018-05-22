@@ -966,6 +966,8 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
 
     # Discriminator with real data
     disc_real_input = tf.identity(labels, name='disc_real_input')
+    if FLAGS.use_patches:
+        disc_real_input = disc_real_input[:,:,14:FLAGS.sample_size_y-14,:]
 
     # TBD: Is there a better way to instance the discriminator?
     with tf.variable_scope('disc') as scope:
