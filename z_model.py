@@ -967,9 +967,8 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
     disc_real_input = tf.identity(labels, name='disc_real_input')
 
     # TBD: Is there a better way to instance the discriminator?
-    with tf.variable_scope('disc') as scope:
+    with tf.variable_scope('disc',reuse=tf.AUTO_REUSE) as scope:
         #print('hybrid_disc', FLAGS.hybrid_disc)
-        
         if FLAGS.use_patches:
             patch_list=[]
             r=int(FLAGS.sample_size/4)
@@ -977,7 +976,10 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
             for i in range(4):
                 for j in range(4):
                     disc_input_patch=disc_real_input[:, r*i:r*(i+1) ,c*j:c*(j+1) ,:]
-                    disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
+                    if i==j==0:
+                        disc_real_patch, disc_var_list, disc_layers =_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
+                    else: 
+                        disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
                     patch_list.append(disc_real_patch)
             disc_real_output=tf.stack(patch_list)
             #print("patch and stacked fake_out SHAPE!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
