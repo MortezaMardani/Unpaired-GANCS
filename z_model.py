@@ -970,7 +970,7 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
     with tf.variable_scope('disc') as scope:
         #print('hybrid_disc', FLAGS.hybrid_disc)
         
-        if FLAGS.use_patches:
+        if FLAGS.use_patches==True:
             patch_list=[]
             r=int(FLAGS.sample_size/4)
             c=int(FLAGS.sample_size_y/4)
@@ -988,7 +988,7 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         scope.reuse_variables()
         gene_output_abs = tf.abs(gene_output)
         
-        if FLAGS.use_patches:
+        if FLAGS.use_patches==True:
             patch_list=[]
             r=int(FLAGS.sample_size/4)
             c=int(FLAGS.sample_size_y/4)
@@ -1099,7 +1099,7 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks):
     # LS cost
     ls_loss = tf.square(disc_output - tf.ones_like(disc_output))
     
-    if FLAGS.use_patches:
+    if FLAGS.use_patches==True:
         gene_ls_loss = tf.squeeze(tf.reduce_mean(ls_loss, axis=[0,1], name='gene_ls_loss'))
         gene_ce_loss = tf.squeeze(tf.reduce_mean(cross_entropy, axis=[0,1], name='gene_ce_loss'))
     else:
@@ -1184,13 +1184,13 @@ def create_discriminator_loss(disc_real_output, disc_fake_output):
     
     ls_loss_real = tf.square(disc_real_output - tf.ones_like(disc_real_output))
     # ls loss
-    if FLAGS.use_patches:
+    if FLAGS.use_patches==True:
         disc_real_loss = tf.squeeze(tf.reduce_mean(ls_loss_real, axis=[0,1], name='disc_real_loss'))
     else:
         disc_real_loss = tf.reduce_mean(ls_loss_real, name='disc_real_loss')
     
     ls_loss_fake = tf.square(disc_fake_output)
-    if FLAGS.use_patches:
+    if FLAGS.use_patches==True:
         disc_fake_loss = tf.squeeze(tf.reduce_mean(ls_loss_fake, axis=[0,1], name='disc_fake_loss'))
     else:
         disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
