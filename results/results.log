@@ -23,4 +23,7 @@ exp8 and exp9 converged: test image exp8b4000 and exp8b10000 looked very similar
 5/5:
 exp 10 converged
 
-TODO:try LReLU and batch size of 4
+tried LReLU on TL model
+
+5/22:
+exp 18 19 20 21: all using 1e-4 learning rate, number of starting mse batches didn't matter, patching made things more stable
