@@ -82,13 +82,11 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 18th exp (5/22): use 16 patches, 2_fold mask, with DC layer and gene skip connect, larger step size
 
-python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_2fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp18 --checkpoint_dir ./checkpoint/ckpt18 --mse_batch 2000 --use_patches True --learning_rate_start 0.0001
-
 19th exp (5/22): same as 18 except mse=100 (same as mse=2000)
 
 20th exp (5/22): same as 19 except pure GAN
 
---mse_batch -200
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_2fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp20a --checkpoint_dir ./checkpoint/ckpt20 --mse_batch -200 --use_patches True --learning_rate_start 0.0001
 
 20a (5/23): decaying learning rate from 4k (not better, disgard)
 
@@ -99,3 +97,9 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 22th exp (5/23): same as 20 except 8 res layers in GEN
 
 22a: remove longest skip connect (worse than with the skip, disgard)
+
+23th exp (5/23): same as 20 except using 5_fold mask and 8 res layers in GEN
+
+23a: 4 res layer, half lr every 3000 (didnt diverge as fast)
+
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_5fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp23a --checkpoint_dir ./checkpoint/ckpt23a --mse_batch -200 --use_patches True --learning_rate_start 0.0001 --learning_rate_half_life 3000
