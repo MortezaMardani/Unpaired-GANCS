@@ -90,8 +90,12 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 --mse_batch -200
 
-20a (5/23): same as 20 except decaying learning rate from 4k
+20a (5/23): decaying learning rate from 4k (not better, disgard)
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_2fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp20a --checkpoint_dir ./checkpoint/ckpt20a --mse_batch -200 --use_patches True --learning_rate_start 0.00005 --learning_rate_half_life 5000 --starting_batch 4000
 
 21th exp (5/22): same as 20 except no patch (is it just the lr?)
+
+22th exp (5/23): same as 20 except 8 res layers in GEN
+
+22a: remove longest skip connect
