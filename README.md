@@ -98,4 +98,4 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 22th exp (5/23): same as 20 except 8 res layers in GEN
 
-22a: remove longest skip connect
+22a: remove longest skip connect (worse than with the skip, disgard)
