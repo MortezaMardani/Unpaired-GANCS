@@ -197,6 +197,9 @@ tf.app.flags.DEFINE_integer('R_seed', -1,
 tf.app.flags.DEFINE_bool('use_patches', False,
                             "whether to patch generator output when feeding to disc")
 
+tf.app.flags.DEFINE_bool('use_phase', True,
+                            "whether to use two channels for both magnitude and phase")
+
 
 
 
