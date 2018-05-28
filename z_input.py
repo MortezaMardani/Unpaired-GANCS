@@ -141,23 +141,29 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
     image_zpad = tf.ifft2d(kspace_zpad)
     image_zpad_real = tf.real(image_zpad)
     image_zpad_real = tf.reshape(image_zpad_real, [image_size[0], image_size[1], 1])
-    image_zpad_imag = tf.imag(image_zpad)
-    image_zpad_imag = tf.reshape(image_zpad_imag, [image_size[0], image_size[1], 1])    
-    # concat to input, 2 channel for real and imag value
-    image_zpad_concat = tf.concat(axis=2, values=[image_zpad_real, image_zpad_imag])
-
-    # split the complex label into real and imaginary channels
     image_output_real = tf.real(image_output)
     image_output_real = tf.reshape(image_output_real, [label_size[0], label_size[1], 1])
-    image_output_complex = tf.imag(image_output)
-    image_output_complex = tf.reshape(image_output_complex, [label_size[0], label_size[1], 1])
-    image_output_concat = tf.concat(axis=2, values=[image_output_real, image_output_complex])
     
+    if (FLAGS.use_phase == True):
+      image_zpad_imag = tf.imag(image_zpad)
+      image_zpad_imag = tf.reshape(image_zpad_imag, [image_size[0], image_size[1], 1])    
+      # concat to input, 2 channel for real and imag value
+      image_zpad_concat = tf.concat(axis=2, values=[image_zpad_real, image_zpad_imag])
 
-    # The feature is zpad image with 2 channel, label is the ground-truth real-valued image
-    feature = tf.reshape(image_zpad_concat, [image_size[0], image_size[1], 2])
-    label   = tf.reshape(image_output_concat, [label_size[0], label_size[1], 2])
-    mask = tf.reshape(DEFAULT_MAKS_TF_c, [image_size[0], image_size[1]])
+      # split the complex label into real and imaginary channels
+
+      image_output_complex = tf.imag(image_output)
+      image_output_complex = tf.reshape(image_output_complex, [label_size[0], label_size[1], 1])
+      image_output_concat = tf.concat(axis=2, values=[image_output_real, image_output_complex])
+
+      # The feature is zpad image with 2 channel, label is the ground-truth real-valued image
+      feature = tf.reshape(image_zpad_concat, [image_size[0], image_size[1], 2])
+      label   = tf.reshape(image_output_concat, [label_size[0], label_size[1], 2])
+      mask = tf.reshape(DEFAULT_MAKS_TF_c, [image_size[0], image_size[1]])
+    else:  # use only real part
+      feature = image_zpad_real
+      label   = image_output_real
+    
 
     # Using asynchronous queues
     features, labels, masks = tf.train.batch([feature, label, mask],
