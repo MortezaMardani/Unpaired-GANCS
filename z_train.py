@@ -22,26 +22,37 @@ def _summarize_progress(train_data, feature, label, gene_output,
     complex_zpad = tf.maximum(tf.minimum(complex_zpad, 1.0), 0.0)
 
     # zpad magnitude
-    mag_zpad = tf.sqrt(complex_zpad[:,:,:,0]**2+complex_zpad[:,:,:,1]**2)
+    if FLAGS.use_phase==True:
+      mag_zpad = tf.sqrt(complex_zpad[:,:,:,0]**2+complex_zpad[:,:,:,1]**2)
+    else:
+      mag_zpad = tf.sqrt(complex_zpad[:,:,:,0]**2)
     mag_zpad = tf.maximum(tf.minimum(mag_zpad, 1.0), 0.0)
     mag_zpad = tf.reshape(mag_zpad, [FLAGS.batch_size,size[0],size[1],1])
     mag_zpad = tf.concat(axis=3, values=[mag_zpad, mag_zpad])
     
     # output image
-    gene_output_complex = tf.complex(gene_output[:,:,:,0],gene_output[:,:,:,1])
+    if FLAGS.use_phase==True:
+      gene_output_complex = tf.complex(gene_output[:,:,:,0],gene_output[:,:,:,1])
+    else:
+      gene_output_complex = gene_output
     mag_output = tf.maximum(tf.minimum(tf.abs(gene_output_complex), 1.0), 0.0)
     mag_output = tf.reshape(mag_output, [FLAGS.batch_size, size[0], size[1], 1])
     #print('size_mag_output', mag)
     mag_output = tf.concat(axis=3, values=[mag_output, mag_output])
 
-
-    label_complex = tf.complex(label[:,:,:,0], label[:,:,:,1])
+    if FLAGS.use_phase==True:
+      label_complex = tf.complex(label[:,:,:,0], label[:,:,:,1])
+    else:
+      label_complex = label
     label_mag = tf.abs(label_complex)
     label_mag = tf.reshape(label_mag, [FLAGS.batch_size, size[0], size[1], 1])
     mag_gt = tf.concat(axis=3, values=[label_mag, label_mag])
 
     # concate for visualize image
-    image = tf.concat(axis=2, values=[complex_zpad, mag_zpad, mag_output, mag_gt])
+    if FLAGS.use_phase==True:
+      image = tf.concat(axis=2, values=[complex_zpad, mag_zpad, mag_output, mag_gt])
+    else:
+      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt])
     image = image[0:max_samples,:,:,:]
     image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
     image = td.sess.run(image)

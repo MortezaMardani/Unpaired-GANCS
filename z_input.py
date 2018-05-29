@@ -143,8 +143,7 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
     image_zpad_real = tf.reshape(image_zpad_real, [image_size[0], image_size[1], 1])
     image_output_real = tf.real(image_output)
     image_output_real = tf.reshape(image_output_real, [label_size[0], label_size[1], 1])
-    
-    if (FLAGS.use_phase == True):
+    if (FLAGS.use_phase is True):
       image_zpad_imag = tf.imag(image_zpad)
       image_zpad_imag = tf.reshape(image_zpad_imag, [image_size[0], image_size[1], 1])    
       # concat to input, 2 channel for real and imag value
@@ -159,11 +158,10 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
       # The feature is zpad image with 2 channel, label is the ground-truth real-valued image
       feature = tf.reshape(image_zpad_concat, [image_size[0], image_size[1], 2])
       label   = tf.reshape(image_output_concat, [label_size[0], label_size[1], 2])
-      mask = tf.reshape(DEFAULT_MAKS_TF_c, [image_size[0], image_size[1]])
     else:  # use only real part
       feature = image_zpad_real
       label   = image_output_real
-    
+    mask = tf.reshape(DEFAULT_MAKS_TF_c, [image_size[0], image_size[1]])
 
     # Using asynchronous queues
     features, labels, masks = tf.train.batch([feature, label, mask],
