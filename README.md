@@ -96,7 +96,7 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 22a: remove longest skip connect (worse than with the skip, disgard)
 
-23th exp (5/23): same as 20 except using 5_fold mask and 8 res layers in GEN
+23th exp (5/23): same as 20th except using 5_fold mask and 8 res layers in GEN
 
 23a: 4 res layer, half lr every 3000 (didnt diverge as fast, only due to things slowing down, disgard)
 
@@ -116,10 +116,12 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 24e: with abs, --activation lrelu --activation_G lrelu
 
-25th exp (5/26): same as 20th except no phase 
+25th exp (5/26): same as 24th except no phase 
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 25 --train_dir ./train_dir/exp25 --checkpoint_dir ./checkpoint/ckpt25 --mse_batch -200 --use_patches True --learning_rate_start 0.0001 --nouse_phase
 
-<26 only part of the label patches>
+26th exp (5/30): same as 24th and 24d except only 1/3 of train data as labels
+
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26 --checkpoint_dir ./checkpoint/ckpt26 --mse_batch -200 --use_patches True --learning_rate_start 0.0001
 
 <26a all label patches>
