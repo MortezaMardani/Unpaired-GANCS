@@ -46,7 +46,7 @@ import os.path
 import random
 import numpy as np
 import numpy.random
-
+import math
 import tensorflow as tf
 import shutil, os, errno # utils handling file manipulation
 
@@ -339,12 +339,10 @@ def _train():
     filenames_output_train = get_filenames(dir_file=FLAGS.dataset_label, shuffle_filename=False)
     num_filenames_input,num_filenames_output = len(filenames_input_train),len(filenames_output_train)
     filenames_output_train *= math.ceil(num_filenames_input/num_filenames_output)
-    print("LENGHT!!!!!", num_filenames_input,num_filenames_output)
     filenames_input_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
     filenames_output_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
 
     # check input and output sample number matches (SEPARATE FOLDER)
-    print("LENGHT!!!!!", num_filenames_input,len(filenames_output_train))
     assert(num_filenames_input<=len(filenames_output_train))
     num_filename_train = len(filenames_input_train)
     assert(len(filenames_input_test)==len(filenames_output_test))
