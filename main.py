@@ -337,11 +337,15 @@ def _train():
         FLAGS.dataset_label = FLAGS.dataset_train
     filenames_input_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=False)
     filenames_output_train = get_filenames(dir_file=FLAGS.dataset_label, shuffle_filename=False)
+    num_filenames_input,num_filenames_output = len(filenames_input_train),len(filenames_output_train)
+    filenames_output_train *= math.ceil(num_filenames_input/num_filenames_output)
+    print("LENGHT!!!!!", num_filenames_input,num_filenames_output)
     filenames_input_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
     filenames_output_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
 
     # check input and output sample number matches (SEPARATE FOLDER)
-    assert(len(filenames_input_train)==len(filenames_output_train))
+    print("LENGHT!!!!!", num_filenames_input,len(filenames_output_train))
+    assert(num_filenames_input<=len(filenames_output_train))
     num_filename_train = len(filenames_input_train)
     assert(len(filenames_input_test)==len(filenames_output_test))
     num_filename_test = len(filenames_input_test)
@@ -352,13 +356,15 @@ def _train():
     # Permutate train and test split (SEPARATE FOLDERS)
     index_permutation_split = random.sample(range(num_filename_train), num_filename_train)
     filenames_input_train = [filenames_input_train[x] for x in index_permutation_split]
-    if FLAGS.permutation_split:
-        index_permutation_split = random.sample(range(num_filename_train), num_filename_train)
+    if FLAGS.dataset_label != '':  
+        index_permutation_split = random.sample(range(len(filenames_output_train)), num_filename_train)
+    elif FLAGS.permutation_split:
+        index_permutation_split = random.sample(range(num_filename_train), num_filename_train)      
     filenames_output_train = [filenames_output_train[x] for x in index_permutation_split]
         #print(np.shape(filenames_input_train))
 
     # Permutate test split (SAME FOLDERS)
-    if FLAGS.permutation_split:
+    if FLAGS.permutation_split: # do not permutate test for now
         '''index_permutation_split = random.sample(range(num_filename_test), num_filename_test)
         filenames_input_test = [filenames_input_test[x] for x in index_permutation_split]
         filenames_output_test = [filenames_output_test[x] for x in index_permutation_split]'''
