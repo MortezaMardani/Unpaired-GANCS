@@ -889,16 +889,14 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         #gene_output_20, _ , gene_layers_20 = function_generator(sess, gene_output_19, labels, masks, 1)
         #scope.reuse_variables()
 
-
         gene_output_real = gene_output_1
-        #gene_output_complex = tf.complex(gene_output_real[:,:,:,0], gene_output_real[:,:,:,1])
-        #gene_output = tf.abs(gene_output_complex)
-        #print('gene_output_train', gene_output.get_shape()) 
-        if FLAGS.use_phase==True:
+        if FLAGS.use_phase == True:
           gene_output = tf.reshape(gene_output_real, [FLAGS.batch_size, rows, cols, 2])
+          gene_layers = gene_layers_1
         else:
-          gene_output = tf.reshape(gene_output_real, [FLAGS.batch_size, rows, cols, 1])
-        gene_layers = gene_layers_1
+          gene_output_complex = tf.complex(gene_output_real[:,:,:,0], gene_output_real[:,:,:,1])
+          gene_output = tf.abs(gene_output_complex)
+        #print('gene_output_train', gene_output.get_shape()) 
 
 
 
@@ -969,11 +967,12 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         #gene_moutput_complex = tf.complex(gene_moutput_real[:,:,:,0], gene_moutput_real[:,:,:,1])
         #gene_moutput = tf.abs(gene_moutput_complex)
         #print('gene_moutput_test', gene_moutput.get_shape())i
-        if FLAGS.use_phase==True:
+        if FLAGS.use_phase ==True:
           gene_moutput = tf.reshape(gene_moutput_real, [FLAGS.batch_size, rows, cols, 2])
+          gene_mlayers = gene_mlayers_1
         else:
-          gene_moutput = tf.reshape(gene_moutput_real, [FLAGS.batch_size, rows, cols, 1])
-        gene_mlayers = gene_mlayers_1
+          gene_moutput_complex = tf.complex(gene_moutput_real[:,:,:,0], gene_moutput_real[:,:,:,1])
+          gene_moutput = tf.abs(gene_moutput_complex)  
 
 
     # Discriminator with real data
