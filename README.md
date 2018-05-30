@@ -118,9 +118,7 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 25th exp (5/26): same as 20th except no phase 
 
-python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 25 --train_dir ./train_dir/exp24 --checkpoint_dir ./checkpoint/ckpt25 --mse_batch -200 --use_patches True --learning_rate_start 0.0001 --nouse_phase
-
-<25a no abs>
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 25 --train_dir ./train_dir/exp25 --checkpoint_dir ./checkpoint/ckpt25 --mse_batch -200 --use_patches True --learning_rate_start 0.0001 --nouse_phase
 
 <26 only part of the label patches>
 
