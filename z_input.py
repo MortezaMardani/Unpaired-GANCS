@@ -112,9 +112,12 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
     image_input = image_input / 255.0 #tf.cast(tf.reduce_max(tf.abs(image_input)), tf.complex64)
 
     image_output_mag = tf.cast(image_output[0:label_size[0],0:label_size[1]], tf.complex64)
-    image_output_phase = tf.cast(8*tf.constant(math.pi), tf.complex64)*tf.cast(image_output[0:label_size[0],label_size[1]:2*label_size[1]], tf.complex64)
-    image_output = tf.multiply(image_output_mag, tf.exp(tf.sqrt(tf.cast(-1,tf.complex64))*image_output_phase))
-    image_output = tf.cast(image_output, tf.complex64)
+    if (FLAGS.use_phase == True):    
+      image_output_phase = tf.cast(8*tf.constant(math.pi), tf.complex64)*tf.cast(image_output[0:label_size[0],label_size[1]:2*label_size[1]], tf.complex64)
+      image_output = tf.multiply(image_output_mag, tf.exp(tf.sqrt(tf.cast(-1,tf.complex64))*image_output_phase))
+      image_output = tf.cast(image_output, tf.complex64)
+    else:
+      image_output=image_output_mag
     # output, gold-standard
     image_output = image_output / 255.0
 
@@ -141,29 +144,27 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
     image_zpad = tf.ifft2d(kspace_zpad)
     image_zpad_real = tf.real(image_zpad)
     image_zpad_real = tf.reshape(image_zpad_real, [image_size[0], image_size[1], 1])
+    image_zpad_imag = tf.imag(image_zpad)
+    image_zpad_imag = tf.reshape(image_zpad_imag, [image_size[0], image_size[1], 1])    
+    # concat to input, 2 channel for real and imag value
+    image_zpad_concat = tf.concat(axis=2, values=[image_zpad_real, image_zpad_imag])
+    feature = tf.reshape(image_zpad_concat, [image_size[0], image_size[1], 2])
+    
     image_output_real = tf.real(image_output)
     image_output_real = tf.reshape(image_output_real, [label_size[0], label_size[1], 1])
-    
+   
+    # split the complex label into real and imaginary channels
     if (FLAGS.use_phase == True):
-      image_zpad_imag = tf.imag(image_zpad)
-      image_zpad_imag = tf.reshape(image_zpad_imag, [image_size[0], image_size[1], 1])    
-      # concat to input, 2 channel for real and imag value
-      image_zpad_concat = tf.concat(axis=2, values=[image_zpad_real, image_zpad_imag])
-
-      # split the complex label into real and imaginary channels
-
       image_output_complex = tf.imag(image_output)
       image_output_complex = tf.reshape(image_output_complex, [label_size[0], label_size[1], 1])
       image_output_concat = tf.concat(axis=2, values=[image_output_real, image_output_complex])
 
       # The feature is zpad image with 2 channel, label is the ground-truth real-valued image
-      feature = tf.reshape(image_zpad_concat, [image_size[0], image_size[1], 2])
       label   = tf.reshape(image_output_concat, [label_size[0], label_size[1], 2])
-      mask = tf.reshape(DEFAULT_MAKS_TF_c, [image_size[0], image_size[1]])
     else:  # use only real part
-      feature = image_zpad_real
       label   = image_output_real
     
+    mask = tf.reshape(DEFAULT_MAKS_TF_c, [image_size[0], image_size[1]])
 
     # Using asynchronous queues
     features, labels, masks = tf.train.batch([feature, label, mask],
