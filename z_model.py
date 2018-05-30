@@ -366,13 +366,13 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
         print("DISCINPUT",disc_size)        
         disc_kspace = Fourier(disc_input, separate_complex=False)
         disc_kspace_real = tf.cast(tf.real(disc_kspace), tf.float32)
-        # print(disc_kspace_real)
+        #print(disc_kspace_real)
         disc_kspace_real = tf.reshape(disc_kspace_real, [disc_size[0],disc_size[1],disc_size[2],1])
         disc_kspace_imag = tf.cast(tf.imag(disc_kspace), tf.float32)
-        # print(disc_kspace_imag)        
+        #print(disc_kspace_imag)        
         disc_kspace_imag = tf.reshape(disc_kspace_imag, [disc_size[0],disc_size[1],disc_size[2],1])
         disc_kspace_mag = tf.cast(tf.abs(disc_kspace), tf.float32)
-        # print(disc_kspace_mag)
+        #print(disc_kspace_mag)
         disc_kspace_mag = tf.log(disc_kspace_mag)
         disc_kspace_mag = tf.reshape(disc_kspace_mag, [disc_size[0],disc_size[1],disc_size[2],1])
         if hybrid_disc == 1:
@@ -652,10 +652,7 @@ def _generator_model_with_pool(sess, features, labels, channels, layer_output_sk
 def _generator_model_with_scale(sess, features, labels, masks, channels, layer_output_skip=5,
                                 num_dc_layers=0):
     # Upside-down all-convolutional resnet
-    if (FLAGS.use_phase):
-      channels = 2
-    else:
-      channels = 1
+    channels = 2
     #image_size = tf.shape(features)
     mapsize = 3
     res_units  = [64]*5 #[128]*5 #[64, 32, 16]#[256, 128, 96]
@@ -716,10 +713,7 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
 
         # sampled kspace
         first_layer = features
-        if FLAGS.use_phase==True:
-          feature_kspace = Fourier(first_layer, separate_complex=True)        
-        else:
-          feature_kspace = Fourier(first_layer, separate_complex=False)
+        feature_kspace = Fourier(first_layer, separate_complex=True)        
         #mask_kspace = tf.cast(masks, dtype=tf.float32) #tf.greater(tf.abs(feature_kspace),threshold_zero)  
 
         #print('sampling_rate', sess.run(tf.reduce_sum(tf.abs(mask_kspace)) / tf.size(mask_kspace)))
@@ -734,10 +728,7 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
             # get output and input
             last_layer = model.outputs[-1]                               
             # compute kspace
-            if FLAGS.use_phase==True:
-              gene_kspace = Fourier(last_layer, separate_complex=True)                
-            else:
-              gene_kspace = Fourier(last_layer, separate_complex=False)
+            gene_kspace = Fourier(last_layer, separate_complex=True)                
             # affine projection
             corrected_kspace =  projected_kspace + gene_kspace * (1.0 - mask_kspace)
 
@@ -755,10 +746,7 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
             corrected_imag = tf.reshape(tf.imag(corrected_complex), [FLAGS.batch_size, image_size[1], image_size[2], 1])
            
             #print('size_corrected_real', corrected_real.get_shape())
-            if FLAGS.use_phase==True:
-              corrected_real_concat = tf.concat([corrected_real, corrected_imag], axis=3)
-            else:
-              corrected_real_concat = corrected_real
+            corrected_real_concat = tf.concat([corrected_real, corrected_imag], axis=3)
             #print('corrected_concat', corrected_real_concat.get_shape())
             #print('channels', channels)
 
@@ -890,12 +878,16 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         #scope.reuse_variables()
 
         gene_output_real = gene_output_1
+        gene_output = tf.reshape(gene_output_real, [FLAGS.batch_size, rows, cols, 2])
+        gene_layers = gene_layers_1
+
         if FLAGS.use_phase == True:
-          gene_output = tf.reshape(gene_output_real, [FLAGS.batch_size, rows, cols, 2])
-          gene_layers = gene_layers_1
+          pass
         else:
-          gene_output_complex = tf.complex(gene_output_real[:,:,:,0], gene_output_real[:,:,:,1])
+          gene_output_complex = tf.complex(gene_output[:,:,:,0], gene_output[:,:,:,1])
           gene_output = tf.abs(gene_output_complex)
+          gene_output = tf.reshape(gene_output, [FLAGS.batch_size, rows, cols, 1])
+
         #print('gene_output_train', gene_output.get_shape()) 
 
 
@@ -967,12 +959,15 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         #gene_moutput_complex = tf.complex(gene_moutput_real[:,:,:,0], gene_moutput_real[:,:,:,1])
         #gene_moutput = tf.abs(gene_moutput_complex)
         #print('gene_moutput_test', gene_moutput.get_shape())i
+        gene_moutput = tf.reshape(gene_moutput_real, [FLAGS.batch_size, rows, cols, 2])
+        gene_mlayers = gene_mlayers_1
+
         if FLAGS.use_phase ==True:
-          gene_moutput = tf.reshape(gene_moutput_real, [FLAGS.batch_size, rows, cols, 2])
-          gene_mlayers = gene_mlayers_1
+          pass
         else:
-          gene_moutput_complex = tf.complex(gene_moutput_real[:,:,:,0], gene_moutput_real[:,:,:,1])
+          gene_moutput_complex = tf.complex(gene_moutput[:,:,:,0], gene_moutput[:,:,:,1])
           gene_moutput = tf.abs(gene_moutput_complex)  
+          gene_moutput = tf.reshape(gene_moutput, [FLAGS.batch_size, rows, cols, 1])
 
 
     # Discriminator with real data
@@ -1128,10 +1123,10 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks):
     # fourier_transform
     if FLAGS.use_phase==True:
       gene_kspace = Fourier(gene_output, separate_complex=True)
-      feature_kspace = Fourier(features, separate_complex=True)
     else:
       gene_kspace = Fourier(gene_output, separate_complex=False)
-      feature_kspace = Fourier(features, separate_complex=False)
+    feature_kspace = Fourier(features, separate_complex=True)
+
     # mask to get affine projection error
     threshold_zero = 1./255.
     feature_mask = masks #tf.greater(tf.abs(feature_kspace),threshold_zero)
