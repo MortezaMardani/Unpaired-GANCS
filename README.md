@@ -124,7 +124,7 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26 --checkpoint_dir ./checkpoint/ckpt26 --mse_batch -200 --use_patches True --learning_rate_start 0.0001
 
-27th exp (5/31): add three GAN training tricks
+27th exp (5/31): add three GAN training tricks to 24th
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp27 --checkpoint_dir ./checkpoint/ckpt27 --mse_batch -200 --use_patches True --learning_rate_start 0.0001 --learning_beta1 0.5 --disc_opti sgd --disc_dropp 0.5
 
