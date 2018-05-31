@@ -359,6 +359,10 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     layers  = [4, 8, 16, 32]#[8, 16, 32, 64]#[64, 128, 256, 512]
 
     old_vars = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
+    
+    # apply dropout to inputs to the disc
+    if FLAGS.disc_dropp > 0.0: 
+        disc_input=tf.nn.dropout(disc_input, 1.0-FLAGS.disc_dropp)
 
     # augment data to hybrid domain = image+kspace
     if hybrid_disc>0:
@@ -1221,10 +1225,14 @@ def create_optimizers(gene_loss, gene_var_list,
     gene_opti = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                        beta1=FLAGS.learning_beta1,
                                        name='gene_optimizer')
-    disc_opti = tf.train.AdamOptimizer(learning_rate=learning_rate,
+    if FLAGS.disc_opti == 'adam':
+      disc_opti = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                        beta1=FLAGS.learning_beta1,
                                        name='disc_optimizer')
-
+    elif FLAGS.disc_opti == 'sgd':
+      disc_opti = tf.train.GradientDescentOptimizer(learning_rate=learning_rate,
+                                       name='disc_optimizer_sgd')
+    
     gene_minimize = gene_opti.minimize(gene_loss, var_list=gene_var_list, name='gene_loss_minimize', global_step=global_step)
     
     disc_minimize     = disc_opti.minimize(disc_loss, var_list=disc_var_list, name='disc_loss_minimize', global_step=global_step)
