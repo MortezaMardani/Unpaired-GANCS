@@ -86,7 +86,7 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 20th exp (5/22): same as 19 except pure GAN
 
-python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_2fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp20a --checkpoint_dir ./checkpoint/ckpt20 --mse_batch -200 --use_patches True --learning_rate_start 0.0001
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_2fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp20 --checkpoint_dir ./checkpoint/ckpt20 --mse_batch -200 --use_patches True --learning_rate_start 0.0001
 
 20a (5/23): decaying learning rate from 4k (not better, disgard)
 
@@ -100,7 +100,7 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 23a: 4 res layer, half lr every 3000 (didnt diverge as fast, only due to things slowing down, disgard)
 
-24th exp (5/24): same as 20th except 3_fold 
+24th exp (5/24): same as 20th except 3_fold (got nice images after gan losses diverged, then mse also diverged)
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp24 --checkpoint_dir ./checkpoint/ckpt24 --mse_batch -200 --use_patches True --learning_rate_start 0.0001
 
@@ -124,4 +124,8 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26 --checkpoint_dir ./checkpoint/ckpt26 --mse_batch -200 --use_patches True --learning_rate_start 0.0001
 
-<26a all label patches>
+27th exp (5/31): add three GAN training tricks
+
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp27 --checkpoint_dir ./checkpoint/ckpt27 --mse_batch -200 --use_patches True --learning_rate_start 0.0001 --learning_beta1 0.5 --disc_opti sgd --disc_dropp 0.5
+
+TODO: Feature matching, stochastic label, dropout/Gaussian in input/intermidiate disc layers  
