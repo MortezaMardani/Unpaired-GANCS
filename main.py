@@ -89,6 +89,12 @@ tf.app.flags.DEFINE_string('dataset_train', '',
 tf.app.flags.DEFINE_string('dataset_test', '',
                            "Path to the test dataset directory.")
 
+tf.app.flags.DEFINE_string('disc_opti', 'adam',
+                            "optimizer to use for discriminator")
+
+tf.app.flags.DEFINE_float('disc_dropp', 0.0,
+                          "drop prob for disc dropout layer: 0 is no dropout")
+
 tf.app.flags.DEFINE_float('epsilon', 1e-8,
                           "Fuzz term to avoid numerical instability")
 
