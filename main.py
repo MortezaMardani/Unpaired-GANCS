@@ -119,6 +119,9 @@ tf.app.flags.DEFINE_float('gene_dc_factor', 0,
 tf.app.flags.DEFINE_float('gpu_memory_fraction', 0.97,
                             "specified the max gpu fraction used per device")
 
+tf.app.flags.DEFINE_bool('grad_penalty', False,
+                         "Whether to use gradient penalty (ArXiv 1704.00028)")
+
 tf.app.flags.DEFINE_integer('hybrid_disc', 0,
                             "whether/level to augment discriminator input to image+kspace hybrid space.")
 
@@ -462,7 +465,7 @@ def _train():
     gene_loss, gene_dc_loss, gene_ls_loss, list_gene_losses, gene_mse_factor = \
                      z_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks)
     disc_real_loss, disc_fake_loss = \
-                     z_model.create_discriminator_loss(disc_real_output, disc_fake_output)
+                     z_model.create_discriminator_loss(disc_real_output, disc_fake_output,train_labels,gene_output)
     disc_loss = tf.add(disc_real_loss, disc_fake_loss, name='disc_loss')
     
     (global_step, learning_rate, gene_minimize, disc_minimize) = \
