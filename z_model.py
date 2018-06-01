@@ -1096,19 +1096,20 @@ def create_discriminator_loss(disc_real_output, disc_fake_output, real_image,gen
         disc_fake_loss = tf.squeeze(tf.reduce_mean(ls_loss_fake, axis=[0,1], name='disc_fake_loss'))
     else:
         disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
-        
-    # gradient penalty
-    if FLAGS.grad_penalty:
-        alpha=tf.random_uniform(tf.shape(real_image)[0],minval=0.,maxval=1.)
-        interpolates = real_image + alpha*(real_image - gene_image)
-        gradients = tf.gradients(Disc(None, None, interpolates), [interpolates])[0]
-        slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients),axis=1)+1e-10)
-        gradient_penalty = tf.reduce_mean((slopes-1.)**2)
-        disc_cost += 10*gradient_penalty
 
     # log to tensorboard
     tf.summary.scalar('disc_real_loss',disc_real_loss)
-    tf.summary.scalar('disc_fake_loss',disc_fake_loss)
+    tf.summary.scalar('disc_fake_loss',disc_fake_loss) 
+       
+    # gradient penalty
+    if FLAGS.grad_penalty:
+        alpha=tf.random_uniform([FLAGS.batch_size,1,1,1],minval=0.,maxval=1.)
+        interpolates = real_image + alpha*(real_image - gene_image)
+        gradients = tf.gradients(Disc(None, None, interpolates)[0], [interpolates])[0]
+        slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients),axis=1)+1e-10)
+        gradient_penalty = tf.reduce_mean((slopes-1.)**2)
+        disc_real_loss += 10*gradient_penalty
+        disc_fake_loss += 10*gradient_penalty
 
     return disc_real_loss, disc_fake_loss
 
