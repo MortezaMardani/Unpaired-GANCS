@@ -120,7 +120,7 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 25 --train_dir ./train_dir/exp25 --checkpoint_dir ./checkpoint/ckpt25 --mse_batch -200 --use_patches True --learning_rate_start 0.0001 --nouse_phase
 
-26th exp (5/30): same as 24th and 24d except only 1/3 of train data as labels
+26th exp (5/30): same as 24d except only 1/3 of train data as labels
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26 --checkpoint_dir ./checkpoint/ckpt26 --mse_batch -200 --use_patches True --learning_rate_start 0.0001
 
@@ -129,5 +129,7 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp27 --checkpoint_dir ./checkpoint/ckpt27 --mse_batch -200 --use_patches True --learning_rate_start 0.0001 --learning_beta1 0.5 --disc_opti sgd --disc_dropp 0.5
 
 27a (5/31 1730): --disc_dropp 0.2
- 
-TODO: Feature matching, stochastic label, dropout/Gaussian in input/intermidiate disc layers  
+
+<28th exp (6/1): same as 24/26, but with gradient regularization 
+
+TODO: random patching, Feature matching, stochastic label, dropout/Gaussian in input/intermidiate disc layers, gradient regularization on disc, pretrain gene with pure mse and ground truth input with data outside train set
