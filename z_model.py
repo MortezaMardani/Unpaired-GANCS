@@ -871,14 +871,25 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
             patch_list=[]
             r=int(FLAGS.sample_size/4)
             c=int(FLAGS.sample_size_y/4)
-            for i in range(4):
-                for j in range(4):
-                    disc_input_patch=disc_real_input[:, r*i:r*(i+1) ,c*j:c*(j+1) ,:]
-                    if i==j==0:
+            if FLAGS.dataset_label != FLAGS.dataset_train:  # when using partial labels, randomly get patches
+                for k in range(16):
+                    i=random.randrange(r*3)
+                    j=random.randrange(c*3)
+                    disc_input_patch=disc_real_input[:, i:r+i ,j:j+c, :]
+                    if k==0:
                         disc_real_patch, disc_var_list, disc_layers =_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
                     else: 
-                        disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
+                        disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)  
                     patch_list.append(disc_real_patch)
+            else:
+                for i in range(4):
+                    for j in range(4):
+                        disc_input_patch=disc_real_input[:, r*i:r*(i+1) ,c*j:c*(j+1), :]
+                        if i==j==0:
+                            disc_real_patch, disc_var_list, disc_layers =_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
+                        else: 
+                            disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
+                        patch_list.append(disc_real_patch)
             disc_real_output=tf.stack(patch_list)
             #print("patch and stacked fake_out SHAPE!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
         else:
