@@ -385,7 +385,7 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
         else:
             disc_hybird = tf.concat(axis = 3, values = [disc_input * 2-1, disc_kspace_imag, disc_kspace_real, disc_kspace_imag])
     else:
-        disc_hybird = 2 * disc_input - 1
+        disc_hybird = disc_input
     print('discriminator input dimensions: {0}'.format(disc_hybird.get_shape()))
     model = Model('DIS', disc_hybird)        
 
@@ -672,7 +672,7 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
     for ru in range(len(res_units)-1):
         nunits  = res_units[ru]
 
-        for j in range(1):  # changed from range(2) (5/11)
+        for j in range(2): 
             model.add_residual_block(nunits, mapsize=mapsize)
 
         # Spatial upscale (see http://distill.pub/2016/deconv-checkerboard/)
@@ -831,12 +831,12 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
 
         
         
-        if FLAGS.use_phase == True:
-          pass
-        else:
-          gene_output_complex = tf.complex(gene_output[:,:,:,0], gene_output[:,:,:,1])
-          gene_output = tf.abs(gene_output_complex)
-          gene_output = tf.reshape(gene_output, [FLAGS.batch_size, rows, cols, 1])
+        #if FLAGS.use_phase == True:
+         # pass
+        #else:
+        gene_output_complex = tf.complex(gene_output[:,:,:,0], gene_output[:,:,:,1])
+        gene_output = tf.abs(gene_output_complex)
+        gene_output = tf.reshape(gene_output, [FLAGS.batch_size, rows, cols, 1])
 
         #print('gene_output_train', gene_output.get_shape()) 
 
@@ -854,12 +854,12 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         gene_moutput = tf.reshape(gene_moutput_real, [FLAGS.batch_size, rows, cols, 2])
         gene_mlayers = gene_mlayers_1
 
-        if FLAGS.use_phase ==True:
-          pass
-        else:
-          gene_moutput_complex = tf.complex(gene_moutput[:,:,:,0], gene_moutput[:,:,:,1])
-          gene_moutput = tf.abs(gene_moutput_complex)  
-          gene_moutput = tf.reshape(gene_moutput, [FLAGS.batch_size, rows, cols, 1])
+        #if FLAGS.use_phase ==True:
+         # pass
+        #else:
+        gene_moutput_complex = tf.complex(gene_moutput[:,:,:,0], gene_moutput[:,:,:,1])
+        gene_moutput = tf.abs(gene_moutput_complex)  
+        gene_moutput = tf.reshape(gene_moutput, [FLAGS.batch_size, rows, cols, 1])
 
 
     # Discriminator with real data
@@ -876,9 +876,9 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
                 for j in range(4):
                     disc_input_patch=disc_real_input[:, r*i:r*(i+1) ,c*j:c*(j+1), :]
                     if i==j==0:
-                       disc_real_patch, disc_var_list, disc_layers =_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
+                        disc_real_patch, disc_var_list, disc_layers =_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
                     else: 
-                       disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
+                        disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
                     patch_list.append(disc_real_patch)
             disc_real_output=tf.stack(patch_list)
             #print("patch and stacked fake_out SHAPE!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
