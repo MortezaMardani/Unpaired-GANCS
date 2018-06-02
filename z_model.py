@@ -325,7 +325,6 @@ class Model:
         self.outputs.append(layer_add)
         return self 
 
-
     def get_output(self):
         """Returns the output from the topmost layer of the network"""
         return self.outputs[-1]
@@ -485,174 +484,6 @@ def Fourier(x, separate_complex=True):
     # y = y[:,:,:,-1]
     return y_complex
 
-def _generator_encoder_decoder(sess, features, labels, channels, layer_output_skip=5):
-    print('use encoder decoder model')
-    # old variables
-    layers = []    
-    old_vars = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
-    # layers.append(features)
-
-    # definition
-    num_filter_generator = 8
-    layer_specs = [ 
-        num_filter_generator * 2, # encoder_2: [batch, 128, 128, ngf] => [batch, 64, 64, ngf * 2]
-        num_filter_generator * 4, # encoder_3: [batch, 64, 64, ngf * 2] => [batch, 32, 32, ngf * 4]
-        num_filter_generator * 8, # encoder_4: [batch, 32, 32, ngf * 4] => [batch, 16, 16, ngf * 8]
-        # num_filter_generator * 8, # encoder_5: [batch, 16, 16, ngf * 8] => [batch, 8, 8, ngf * 8]
-        # num_filter_generator * 8, # encoder_6: [batch, 8, 8, ngf * 8] => [batch, 4, 4, ngf * 8]
-        # num_filter_generator * 8, # encoder_7: [batch, 4, 4, ngf * 8] => [batch, 2, 2, ngf * 8]
-        num_filter_generator * 16, # encoder_8: [batch, 2, 2, ngf * 8] => [batch, 1, 1, ngf * 8]
-    ]
-
-   # encoder_1: [batch, 256, 256, in_channels] => [batch, 128, 128, ngf]
-    with tf.variable_scope("encoder_1"):
-        output = conv(features, num_filter_generator, stride=2)
-        layers.append(output)
-
-    for out_channels in layer_specs:
-        with tf.variable_scope("encoder_%d" % (len(layers) + 1)):
-            rectified = lrelu(layers[-1], 0.2)
-            # [batch, in_height, in_width, in_channels] => [batch, in_height/2, in_width/2, out_channels]
-            convolved = conv(rectified, out_channels, stride=2)
-            output = batchnorm(convolved)
-            layers.append(output)
-
-    layer_specs = [
-        # (num_filter_generator * 16, 0.5),   # decoder_8: [batch, 1, 1, ngf * 8] => [batch, 2, 2, ngf * 8 * 2]
-        # (num_filter_generator * 8, 0.5),   # decoder_7: [batch, 2, 2, ngf * 8 * 2] => [batch, 4, 4, ngf * 8 * 2]
-        # (num_filter_generator * 8, 0.5),   # decoder_6: [batch, 4, 4, ngf * 8 * 2] => [batch, 8, 8, ngf * 8 * 2]
-        (num_filter_generator * 8, 0.0),   # decoder_5: [batch, 8, 8, ngf * 8 * 2] => [batch, 16, 16, ngf * 8 * 2]
-        (num_filter_generator * 4, 0.0),   # decoder_4: [batch, 16, 16, ngf * 8 * 2] => [batch, 32, 32, ngf * 4 * 2]
-        (num_filter_generator * 2, 0.0),   # decoder_3: [batch, 32, 32, ngf * 4 * 2] => [batch, 64, 64, ngf * 2 * 2]
-        (num_filter_generator, 0.0),       # decoder_2: [batch, 64, 64, ngf * 2 * 2] => [batch, 128, 128, ngf * 2]
-    ]
-
-    num_encoder_layers = len(layers)
-    for decoder_layer, (out_channels, dropout) in enumerate(layer_specs):
-        skip_layer = num_encoder_layers - decoder_layer - 1
-        with tf.variable_scope("decoder_%d" % (skip_layer + 1)):
-            if decoder_layer == 0:
-                # first decoder layer doesn't have skip connections
-                # since it is directly connected to the skip_layer
-                input = layers[-1]
-            else:
-                input = tf.concat(axis=3, values=[layer[-1], layers[skip_layer]]) # change the order of value and axisn, axis=3)
-
-            rectified = tf.nn.relu(input)
-            # [batch, in_height, in_width, in_channels] => [batch, in_height*2, in_width*2, out_channels]
-            output = deconv(rectified, out_channels)
-            output = batchnorm(output)
-
-            # if dropout > 0.0:
-            #     output = tf.nn.dropout(output, keep_prob = 1 - dropout)
-
-            layers.append(output)
-
-    # decoder_1: [batch, 128, 128, ngf * 2] => [batch, 256, 256, generator_outputs_channels]
-    for x in layers:
-        print(x)
-
-    with tf.variable_scope("decoder_1"):
-        input = tf.concat(axis=3, values=[layer[-1], layers[0]]) #, axis=3)
-        rectified = tf.nn.relu(input)
-        output = deconv(rectified, channels)
-        # output = tf.tanh(output)
-        output = tf.nn.sigmoid(output)
-        layers.append(output)
-
-
-    # out variables
-    new_vars  = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
-    gene_vars = list(set(new_vars) - set(old_vars))
-
-    # select subset of layers
-    output_layers = [layers[0]] + layers[1:-1][::layer_output_skip] + [layers[-1]]
-
-    return layers[-1], gene_vars, output_layers
-
-def _generator_model_with_pool(sess, features, labels, channels, layer_output_skip=5):
-    mapsize = 3
-    res_units  = [32, 64, 64] #[64, 128, 128] #[64, 32, 16]#[256, 128, 96]
-    layer_pooling = [1, 1, 0]
-    print('use resnet conv-decov with pooling parameters:', res_units, layer_pooling)
-    
-    old_vars = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
-
-    # See Arxiv 1603.05027
-    model = Model('GEN', features)
-    list_layer_before_pool=[]
-    for index_layer in range(len(res_units)-1):
-        nunits  = res_units[index_layer]
-
-        for j in range(2):
-            model.add_residual_block(nunits, mapsize=mapsize)
-
-        list_layer_before_pool.append(model.outputs[-1])
-        
-        # conv 
-        model.add_batch_norm()
-        if (FLAGS.activation_G=='lrelu'):
-            model.add_lrelu()
-        else:
-            model.add_relu()
-        # model.add_conv2d_transpose(nunits, mapsize=mapsize, stride=1, stddev_factor=1.)
-
-        # pooling/striding
-        stride = layer_pooling[index_layer]+1
-        model.add_conv2d(nunits, mapsize=mapsize, stride=stride, stddev_factor=1.)
-
-    print('list_layer_before_pool', list_layer_before_pool)
-    print('model.outputs', model.outputs)
-
-    for index_layer_rev in range(len(res_units)-1):
-        index_layer = len(list_layer_before_pool)-1-index_layer_rev
-        nunits  = res_units[index_layer]
-
-        for j in range(2):
-            model.add_residual_block(nunits, mapsize=mapsize)
-
-        # up-pool cov
-        if layer_pooling[index_layer]:
-            model.add_upscale()
-
-        model.add_batch_norm()
-        if (FLAGS.activation_G=='lrelu'):
-            model.add_lrelu()
-        else:
-            model.add_relu()
-        model.add_conv2d_transpose(nunits, mapsize=mapsize, stride=1, stddev_factor=1.)
-
-        # concat
-        model.add_concat(list_layer_before_pool[index_layer])
-        
-
-    # conv 
-    nunits = res_units[-1]
-    model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=2.)
-    if (FLAGS.activation_G=='lrelu'):
-        model.add_lrelu()
-    else:
-        model.add_relu()
-
-    # filter to channel number
-    model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=2.)
-    if (FLAGS.activation_G=='lrelu'):
-        model.add_lrelu()
-    else:
-        model.add_relu()
-
-    # output
-    model.add_conv2d(channels, mapsize=1, stride=1, stddev_factor=1.)
-    model.add_sigmoid()
-
-    # get variables
-    new_vars  = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
-    gene_vars = list(set(new_vars) - set(old_vars))
-
-    # select subset of layers
-    output_layers = [model.outputs[0]] + model.outputs[1:-1][::layer_output_skip] + [model.outputs[-1]]
-
-    return model.get_output(), gene_vars, output_layers
 
 def _generator_model_with_scale(sess, features, labels, masks, channels, layer_output_skip=5,
                                 num_dc_layers=0):
@@ -831,12 +662,12 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
 
         
         
-        #if FLAGS.use_phase == True:
-         # pass
-        #else:
-        gene_output_complex = tf.complex(gene_output[:,:,:,0], gene_output[:,:,:,1])
-        gene_output = tf.abs(gene_output_complex)
-        gene_output = tf.reshape(gene_output, [FLAGS.batch_size, rows, cols, 1])
+        if FLAGS.use_phase == True:
+          pass
+        else:
+          gene_output_complex = tf.complex(gene_output[:,:,:,0], gene_output[:,:,:,1])
+          gene_output = tf.abs(gene_output_complex)
+          gene_output = tf.reshape(gene_output, [FLAGS.batch_size, rows, cols, 1])
 
         #print('gene_output_train', gene_output.get_shape()) 
 
@@ -854,12 +685,12 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         gene_moutput = tf.reshape(gene_moutput_real, [FLAGS.batch_size, rows, cols, 2])
         gene_mlayers = gene_mlayers_1
 
-        #if FLAGS.use_phase ==True:
-         # pass
-        #else:
-        gene_moutput_complex = tf.complex(gene_moutput[:,:,:,0], gene_moutput[:,:,:,1])
-        gene_moutput = tf.abs(gene_moutput_complex)  
-        gene_moutput = tf.reshape(gene_moutput, [FLAGS.batch_size, rows, cols, 1])
+        if FLAGS.use_phase ==True:
+          pass
+        else:
+          gene_moutput_complex = tf.complex(gene_moutput[:,:,:,0], gene_moutput[:,:,:,1])
+          gene_moutput = tf.abs(gene_moutput_complex)  
+          gene_moutput = tf.reshape(gene_moutput, [FLAGS.batch_size, rows, cols, 1])
 
 
     # Discriminator with real data
