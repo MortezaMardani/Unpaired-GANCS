@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-import random 
 
 FLAGS = tf.app.flags.FLAGS
 
