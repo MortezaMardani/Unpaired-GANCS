@@ -27,3 +27,6 @@ tried LReLU on TL model
 
 5/22:
 exp 18 19 20 21: all using 1e-4 learning rate, number of starting mse batches didn't matter, patching made things more stable
+
+6/3: old hybrid_disc = 2 * disc_input -1 and range(1) both affect initial GAN losses a lot. 
+     New version: high disc_fake, low disc_real and gene_fool; old version the opposite for all 
