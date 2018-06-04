@@ -929,7 +929,7 @@ def create_discriminator_loss(disc_real_output, disc_fake_output, real_data = No
         alpha = tf.random_uniform(shape=[FLAGS.batch_size, 1, 1, 1], minval=0.,maxval=1.)    
         interpolates = real_data + (alpha*(fake_data - real_data))
         with tf.variable_scope('disc', reuse=True) as scope:
-            interpolates_disc_output, _, _ = _discriminator_model(sess, features, interpolates, hybrid_disc=FLAGS.hybrid_disc)
+            interpolates_disc_output, _, _ = _discriminator_model(None,None, interpolates, hybrid_disc=FLAGS.hybrid_disc)
             gradients = tf.gradients(interpolates_disc_output, [interpolates])[0] 
             gradients = tf.layers.flatten(gradients)  # [batch_size, -1] 
         slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))  
@@ -938,8 +938,7 @@ def create_discriminator_loss(disc_real_output, disc_fake_output, real_data = No
         
         tf.summary.scalar('disc_total_loss',disc_loss)
         tf.summary.scalar('disc_loss_wo_gp',disc_cost) 
-        
-        return disc_loss
+        return disc_loss,gradient_penalty,disc_cost
   
     else:
         ls_loss_real = tf.square(disc_real_output - tf.ones_like(disc_real_output))

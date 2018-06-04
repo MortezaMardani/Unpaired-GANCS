@@ -466,7 +466,7 @@ def _train():
                      z_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks)
     
     if FLAGS.wgan_gp: # WGAN
-      disc_loss = z_model.create_discriminator_loss(disc_real_output, disc_fake_output, \
+      disc_loss,disc_fake_loss,disc_real_loss = z_model.create_discriminator_loss(disc_real_output, disc_fake_output, \
                                                     real_data = tf.identity(train_labels), fake_data = tf.abs(gene_output))
     else:  # LSGAN
       disc_real_loss, disc_fake_loss = \
