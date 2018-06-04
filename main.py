@@ -209,6 +209,9 @@ tf.app.flags.DEFINE_bool('use_patches', False,
 tf.app.flags.DEFINE_bool('use_phase', True,
                             "whether to use two channels for both magnitude and phase")
 
+tf.app.flags.DEFINE_bool('wgan_gp', False, 
+                         "whether to use WGAN-GP instead of LSGAN")
+
 
 
 
@@ -464,9 +467,14 @@ def _train():
 
     gene_loss, gene_dc_loss, gene_ls_loss, list_gene_losses, gene_mse_factor = \
                      z_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks)
-    disc_real_loss, disc_fake_loss = \
-                     z_model.create_discriminator_loss(disc_real_output, disc_fake_output,train_labels,gene_output)
-    disc_loss = tf.add(disc_real_loss, disc_fake_loss, name='disc_loss')
+    
+    if FLAGS.wgan_gp: # WGAN
+      disc_loss = z_model.create_discriminator_loss(disc_real_output, disc_fake_output, \
+                                                    real_data = tf.identity(train_labels), fake_data = tf.abs(gene_output))
+    else:  # LSGAN
+      disc_real_loss, disc_fake_loss = \
+                     z_model.create_discriminator_loss(disc_real_output, disc_fake_output)
+      disc_loss = tf.add(disc_real_loss, disc_fake_loss, name='disc_loss')
     
     (global_step, learning_rate, gene_minimize, disc_minimize) = \
             z_model.create_optimizers(gene_loss, gene_var_list,
