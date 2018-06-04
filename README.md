@@ -120,9 +120,29 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 25 --train_dir ./train_dir/exp25 --checkpoint_dir ./checkpoint/ckpt25 --mse_batch -200 --use_patches True --learning_rate_start 0.0001 --nouse_phase
 
-26th exp (5/30): same as 24d except only 1/3 of train data as labels
+26th exp (5/30): same as 24d except only 1/3 of train data as labels, 4x4 patch and shuffle at image level, commit fcf6c25 (diff than 8efc16a)
 
-python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26 --checkpoint_dir ./checkpoint/ckpt26 --mse_batch -200 --use_patches True --learning_rate_start 0.0001
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/temp --checkpoint_dir ./checkpoint/temp --mse_batch -200 --use_patches True --learning_rate_start 0.0001
+
+26a (6/1): using grad_penalty, diverged a little faster, got best image a bit earlier. with commit fcf6c25
+
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26a --checkpoint_dir ./checkpoint/ckpt26a --mse_batch -200  --learning_rate_start 0.0001 --grad_penalty True --use_patches True
+
+26b (6/2): random patch and shuffle at patch level, with master
+
+26ba: with commit fcf6c25
+
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/label26b --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26b --checkpoint_dir ./checkpoint/ckpt26b --mse_batch -200  --learning_rate_start 0.0001 --use_patches True
+
+26c: 4x4 patch and shuffle at patch level, with master
+
+26ca: with commit fcf6c25
+
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/label26c --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26c --checkpoint_dir ./checkpoint/ckpt26c --mse_batch -200  --learning_rate_start 0.0001 --use_patches True &
+
+26d: random patch and shuffle at image level, with master
+
+26da: with commit fcf6c25
 
 27th exp (5/31): add three GAN training tricks to 24th
 
@@ -130,6 +150,5 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 27a (5/31 1730): --disc_dropp 0.2
 
-<28th exp (6/1): same as 24/26, but with gradient regularization 
 
-TODO: random patching, Feature matching, stochastic label, dropout/Gaussian in input/intermidiate disc layers, gradient regularization on disc, pretrain gene with pure mse and ground truth input with data outside train set
+TODO: Feature matching, stochastic label, dropout/Gaussian in input/intermidiate disc layers, pretrain gene with pure mse and ground truth input with data outside train set
