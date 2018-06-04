@@ -119,9 +119,6 @@ tf.app.flags.DEFINE_float('gene_dc_factor', 0,
 tf.app.flags.DEFINE_float('gpu_memory_fraction', 0.97,
                             "specified the max gpu fraction used per device")
 
-tf.app.flags.DEFINE_bool('grad_penalty', False,
-                         "Whether to use gradient penalty (ArXiv 1704.00028)")
-
 tf.app.flags.DEFINE_integer('hybrid_disc', 0,
                             "whether/level to augment discriminator input to image+kspace hybrid space.")
 
