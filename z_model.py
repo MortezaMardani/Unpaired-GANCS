@@ -392,7 +392,8 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
         stddev_factor = 2.0
 
         model.add_conv2d(nunits, mapsize=mapsize, stride=2, stddev_factor=stddev_factor)
-        model.add_batch_norm()
+        if not FLAGS.wgan_gp:  # bn not compatible with wgan, can use layer norm
+            model.add_batch_norm()
         if (FLAGS.activation=='lrelu'):
             model.add_lrelu()
         else:
@@ -400,14 +401,16 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
 
     # Finalization a la "all convolutional net"
     model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=stddev_factor)
-    model.add_batch_norm()
+    if not FLAGS.wgan_gp: 
+        model.add_batch_norm()
     if (FLAGS.activation=='lrelu'):
         model.add_lrelu()
     else:
         model.add_relu()
 
     model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=stddev_factor)
-    model.add_batch_norm()
+    if not FLAGS.wgan_gp: 
+        model.add_batch_norm()
     if (FLAGS.activation=='lrelu'):
         model.add_lrelu()
     else:
@@ -877,9 +880,14 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks):
     gene_mixmse_loss = gene_l1_loss #tf.add(FLAGS.gene_ssim_factor * gene_ssim_loss,(1.0 - FLAGS.gene_ssim_factor) * gene_mse_loss, name='gene_mixmse_loss')
 
     
-    # generator fool descriminator loss: gan LS or log loss
-    gene_fool_loss = tf.add((1.0 - FLAGS.gene_log_factor) * gene_ls_loss,
-                           FLAGS.gene_log_factor * gene_ce_loss, name='gene_fool_loss')
+    if FLAGS.wgan_gp:
+        gene_wgan_gp_loss = -tf.reduce_mean(disc_output)   # wgan gene loss
+        gene_fool_loss = tf.add((1.0 - FLAGS.gene_log_factor) * gene_wgan_gp_loss, 
+            FLAGS.gene_log_factor * gene_ce_loss, name='gene_fool_loss')
+    else:
+        # generator fool descriminator loss: gan LS or log loss
+        gene_fool_loss = tf.add((1.0 - FLAGS.gene_log_factor) * gene_ls_loss,
+                               FLAGS.gene_log_factor * gene_ce_loss, name='gene_fool_loss')
 
     # non-mse loss = fool-loss + data consisntency loss
     gene_non_mse_l2     = tf.add((1.0 - FLAGS.gene_dc_factor) * gene_fool_loss,
@@ -908,41 +916,50 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks):
     return gene_loss, gene_dc_loss, gene_fool_loss, list_gene_lose, gene_mse_factor
     
 
-def create_discriminator_loss(disc_real_output, disc_fake_output, real_image,gene_image,Disc=_discriminator_model):
+def create_discriminator_loss(disc_real_output, disc_fake_output, real_data = None, fake_data = None):
     # I.e. did we correctly identify the input as real or not?
     # cross_entropy_real = tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_real_output, labels=tf.ones_like(disc_real_output))
     # disc_real_loss     = tf.reduce_mean(cross_entropy_real, name='disc_real_loss') 
     # cross_entropy_fake = tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_fake_output, labels=tf.zeros_like(disc_fake_output))
     # disc_fake_loss     = tf.reduce_mean(cross_entropy_fake, name='disc_fake_loss')
     
-    ls_loss_real = tf.square(disc_real_output - tf.ones_like(disc_real_output))
-    # ls loss
-    if FLAGS.use_patches==True:
-        disc_real_loss = tf.squeeze(tf.reduce_mean(ls_loss_real, axis=[0,1], name='disc_real_loss'))
+    if FLAGS.wgan_gp:
+        disc_cost = tf.reduce_mean(disc_fake_output) - tf.reduce_mean(disc_real_output)  
+        # generate noisy inputs 
+        alpha = tf.random_uniform(shape=[FLAGS.batch_size, 1, 1, 1], minval=0.,maxval=1.)    
+        interpolates = real_data + (alpha*(fake_data - real_data))
+        with tf.variable_scope('disc', reuse=True) as scope:
+            interpolates_disc_output, _, _ = _discriminator_model(sess, features, interpolates, hybrid_disc=FLAGS.hybrid_disc)
+            gradients = tf.gradients(interpolates_disc_output, [interpolates])[0] 
+            gradients = tf.layers.flatten(gradients)  # [batch_size, -1] 
+        slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))  
+        gradient_penalty = tf.reduce_mean((slopes - 1.)**2)
+        disc_loss = tf.add(disc_cost, 10 * gradient_penalty, name='disc_loss')
+        
+        tf.summary.scalar('disc_total_loss',disc_loss)
+        tf.summary.scalar('disc_loss_wo_gp',disc_cost) 
+        
+        return disc_loss
+  
     else:
-        disc_real_loss = tf.reduce_mean(ls_loss_real, name='disc_real_loss')
-    
-    ls_loss_fake = tf.square(disc_fake_output)
-    if FLAGS.use_patches==True:
-        disc_fake_loss = tf.squeeze(tf.reduce_mean(ls_loss_fake, axis=[0,1], name='disc_fake_loss'))
-    else:
-        disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
+        ls_loss_real = tf.square(disc_real_output - tf.ones_like(disc_real_output))
+        # ls loss
+        if FLAGS.use_patches==True:
+            disc_real_loss = tf.squeeze(tf.reduce_mean(ls_loss_real, axis=[0,1], name='disc_real_loss'))
+        else:
+            disc_real_loss = tf.reduce_mean(ls_loss_real, name='disc_real_loss')
 
-    # log to tensorboard
-    tf.summary.scalar('disc_real_loss',disc_real_loss)
-    tf.summary.scalar('disc_fake_loss',disc_fake_loss) 
-       
-    # gradient penalty
-    if FLAGS.grad_penalty:
-        alpha=tf.random_uniform([FLAGS.batch_size,1,1,1],minval=0.,maxval=1.)
-        interpolates = real_image + alpha*(real_image - gene_image)
-        gradients = tf.gradients(Disc(None, None, interpolates)[0], [interpolates])[0]
-        slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients),axis=1)+1e-10)
-        gradient_penalty = tf.reduce_mean((slopes-1.)**2)
-        disc_real_loss += 10*gradient_penalty
-        disc_fake_loss += 10*gradient_penalty
+        ls_loss_fake = tf.square(disc_fake_output)
+        if FLAGS.use_patches==True:
+            disc_fake_loss = tf.squeeze(tf.reduce_mean(ls_loss_fake, axis=[0,1], name='disc_fake_loss'))
+        else:
+            disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
 
-    return disc_real_loss, disc_fake_loss
+        # log to tensorboard
+        tf.summary.scalar('disc_real_loss',disc_real_loss)
+        tf.summary.scalar('disc_fake_loss',disc_fake_loss) 
+        
+        return disc_real_loss, disc_fake_loss
 
 def create_optimizers(gene_loss, gene_var_list,
                       disc_loss, disc_var_list):    
@@ -950,20 +967,29 @@ def create_optimizers(gene_loss, gene_var_list,
     global_step    = tf.Variable(0, dtype=tf.int64,   trainable=False, name='global_step')
     learning_rate  = tf.placeholder(dtype=tf.float32, name='learning_rate')
     
-    gene_opti = tf.train.AdamOptimizer(learning_rate=learning_rate,
-                                       beta1=FLAGS.learning_beta1,
+    if FLAGS.wgan_gp:
+        gene_opti = tf.train.AdamOptimizer(learning_rate=learning_rate,
+                                       beta1=0.5, beta2=0.9,
                                        name='gene_optimizer')
-    if FLAGS.disc_opti == 'adam':
-      disc_opti = tf.train.AdamOptimizer(learning_rate=learning_rate,
-                                       beta1=FLAGS.learning_beta1,
+        disc_opti = tf.train.AdamOptimizer(learning_rate=learning_rate,
+                                       beta1=0.5, beta2=0.9,
                                        name='disc_optimizer')
-    elif FLAGS.disc_opti == 'sgd':
-      disc_opti = tf.train.GradientDescentOptimizer(learning_rate=learning_rate,
-                                       name='disc_optimizer_sgd')
+      
+    else:
+        gene_opti = tf.train.AdamOptimizer(learning_rate=learning_rate,
+                                           beta1=FLAGS.learning_beta1,
+                                           name='gene_optimizer')
+        if FLAGS.disc_opti == 'adam':
+          disc_opti = tf.train.AdamOptimizer(learning_rate=learning_rate,
+                                           beta1=FLAGS.learning_beta1,
+                                           name='disc_optimizer')
+        elif FLAGS.disc_opti == 'sgd':
+          disc_opti = tf.train.GradientDescentOptimizer(learning_rate=learning_rate,
+                                           name='disc_optimizer_sgd')
     
     gene_minimize = gene_opti.minimize(gene_loss, var_list=gene_var_list, name='gene_loss_minimize', global_step=global_step)
     
-    disc_minimize     = disc_opti.minimize(disc_loss, var_list=disc_var_list, name='disc_loss_minimize', global_step=global_step)
+    disc_minimize = disc_opti.minimize(disc_loss, var_list=disc_var_list, name='disc_loss_minimize', global_step=global_step)
     
     return (global_step, learning_rate, gene_minimize, disc_minimize)
 
