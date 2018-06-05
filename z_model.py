@@ -366,7 +366,7 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     # augment data to hybrid domain = image+kspace
     if hybrid_disc>0:
         disc_size = tf.shape(disc_input)#disc_input.get_shape()
-        print("DISCINPUT",disc_size)        
+        #print("DISCINPUT",disc_size)        
         disc_kspace = Fourier(disc_input, separate_complex=False)
         disc_kspace_real = tf.cast(tf.real(disc_kspace), tf.float32)
         #print(disc_kspace_real)
@@ -383,7 +383,7 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
         else:
             disc_hybird = tf.concat(axis = 3, values = [disc_input * 2-1, disc_kspace_imag, disc_kspace_real, disc_kspace_imag])
     else:
-        disc_hybird = disc_input
+        disc_hybird = 2*disc_input-1
     print('discriminator input dimensions: {0}'.format(disc_hybird.get_shape()))
     model = Model('DIS', disc_hybird)        
 
@@ -541,7 +541,7 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
     model.add_conv2d(channels, mapsize=1, stride=1, stddev_factor=1.)
     #model.add_sigmoid()
     # Skip connection from input to output, skipping the whole gene (5/11)
-    model.add_sum(features)
+    #model.add_sum(features)
     
     # add dc connection for each block
     if num_dc_layers >= 0:
@@ -927,15 +927,16 @@ def create_discriminator_loss(disc_real_output, disc_fake_output, real_data = No
         disc_cost = tf.reduce_mean(disc_fake_output) - tf.reduce_mean(disc_real_output)  
         # generate noisy inputs 
         alpha = tf.random_uniform(shape=[FLAGS.batch_size, 1, 1, 1], minval=0.,maxval=1.)    
-        interpolates = real_data + (alpha*(fake_data - real_data))
+        interpolates = real_data + alpha*(fake_data - real_data)
         with tf.variable_scope('disc', reuse=True) as scope:
             interpolates_disc_output, _, _ = _discriminator_model(None,None, interpolates, hybrid_disc=FLAGS.hybrid_disc)
             gradients = tf.gradients(interpolates_disc_output, [interpolates])[0] 
             gradients = tf.layers.flatten(gradients)  # [batch_size, -1] 
         slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))  
         gradient_penalty = tf.reduce_mean((slopes - 1.)**2)
-        disc_loss = tf.add(disc_cost, 10 * gradient_penalty, name='disc_loss')
-        
+        disc_loss = tf.add(disc_cost, 10. * gradient_penalty, name='disc_loss')
+
+        tf.summary.scalar('disc_gp_loss',gradient_penalty)        
         tf.summary.scalar('disc_total_loss',disc_loss)
         tf.summary.scalar('disc_loss_wo_gp',disc_cost) 
         return disc_loss,gradient_penalty,disc_cost
