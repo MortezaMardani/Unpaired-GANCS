@@ -150,5 +150,11 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 27a (5/31 1730): --disc_dropp 0.2
 
+28th exp: wgan and 1/3 label
+
+28a: 1/5 label
+
+28c: 1/5 label, better
+
 
 TODO: Feature matching, stochastic label, dropout/Gaussian in input/intermidiate disc layers, pretrain gene with pure mse and ground truth input with data outside train set
