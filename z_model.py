@@ -383,7 +383,7 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
         else:
             disc_hybird = tf.concat(axis = 3, values = [disc_input * 2-1, disc_kspace_imag, disc_kspace_real, disc_kspace_imag])
     else:
-        disc_hybird = 2*disc_input-1
+        disc_hybird = disc_input
     print('discriminator input dimensions: {0}'.format(disc_hybird.get_shape()))
     model = Model('DIS', disc_hybird)        
 
