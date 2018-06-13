@@ -148,11 +148,15 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 27a (5/31 1730): --disc_dropp 0.2
 
-28th exp: wgan and 1/3 label
+28th exp: wgan and 1/3 label, =
 
-28a: 1/5 label
+exp28rep (6/12): exp28arep: python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small  --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8  --summary_period 1700 --train_dir ./train_dir/exp28rep --checkpoint_dir ./checkpoint/exp28rep --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5
 
-28c: 1/5 label, better
+28a: 1/5 label, =
+
+exp28arep (6/12): python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small  --dataset_label ./Knee-highresolution-19cases/partial_labels5 --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8  --summary_period 1700 --train_dir ./train_dir/exp28arep --checkpoint_dir ./checkpoint/exp28arep --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5
+
+28c: 1/5 label, 2* -1
 
 rep9a: WGAN with full label
 
