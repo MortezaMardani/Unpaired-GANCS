@@ -140,6 +140,8 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 26d: random patch and shuffle at image level, with master
 
+26e: 1/5 label
+
 26da: with commit fcf6c25
 
 27th exp (5/31): add three GAN training tricks to 24th
@@ -154,13 +156,18 @@ exp28rep (6/12): exp28arep: python3 main.py --dataset_train ./Knee-highresolutio
 
 28a: 1/5 label, =
 
-exp28arep (6/12): python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small  --dataset_label ./Knee-highresolution-19cases/partial_labels5 --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8  --summary_period 1700 --train_dir ./train_dir/exp28arep --checkpoint_dir ./checkpoint/exp28arep --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5
+exp28arep (6/12): python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small  --dataset_label ./Knee-highresolution-19cases/partial_labels5 --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8  --summary_period 1700 --train_dir ./train_dir/exp28arep --checkpoint_dir ./checkpoint/exp28arep --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5 
 
 28c: 1/5 label, 2* -1
 
-rep9a: WGAN with full label
+exp9rep: =  
 
-python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small  --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8  --sample_test 24 --summary_period 8000 --train_dir ./train_dir/rep9a --checkpoint_dir ./checkpoint/rep9a --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small  --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8  --train_dir ./train_dir/exp9rep --checkpoint_dir ./checkpoint/exp9rep --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5 --sample_test 24
 
+rep9a: WGAN with full label, 2*- 1
+
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small  --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8  --sample_test 24 --summary_period 8000 --train_dir ./train_dir/rep9a --checkpoint_dir ./checkpoint/rep9a --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5 
+
+all exp\* rep with ba1a402 in wgan branch
 
 TODO: Feature matching, dropout/Gaussian in input/intermidiate disc layers, pretrain gene with pure mse and ground truth input with data outside train set
