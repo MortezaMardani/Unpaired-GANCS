@@ -46,7 +46,13 @@ def _summarize_progress(train_data, feature, label, gene_output,
       label_complex = label
     label_mag = tf.abs(label_complex)
     label_mag = tf.reshape(label_mag, [FLAGS.batch_size, size[0], size[1], 1])
-    mag_gt = tf.concat(axis=3, values=[label_mag, label_mag])
+    mag_gt = tf.concat(axis=3, values=[label_mag, label_mag]) #size (8, 160, 128, 2) 
+    
+    # calculate SNR
+    signal=mag_gt[:,20:size[0]-20,14:size[1]-14,0]  # crop out edges
+    withNoise=mag_output[:,20:size[0]-20,14:size[1]-14,0]
+    
+
 
     # concate for visualize image
     if FLAGS.use_phase==True:
@@ -56,7 +62,7 @@ def _summarize_progress(train_data, feature, label, gene_output,
     image = image[0:max_samples,:,:,:]
     image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
     image = td.sess.run(image)
-    print('save to image size {0} type {1}', image.shape, type(image))
+    print('save to image size ', image.shape, 'type ', type(image))
     
     # 3rd channel for visualization
     mag_3rd = np.maximum(image[:,:,0],image[:,:,1])
