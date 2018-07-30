@@ -49,9 +49,9 @@ def _summarize_progress(train_data, feature, label, gene_output,
     mag_gt = tf.concat(axis=3, values=[label_mag, label_mag]) #size (8, 160, 128, 2) 
     
     # calculate SNR
-    signal=mag_gt[:,20:size[0]-20,14:size[1]-14,0]  # crop out edges
-    withNoise=mag_output[:,20:size[0]-20,14:size[1]-14,0]
-    
+    signal=tf.reshape(mag_gt[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))     # crop out edges
+    Gout=tf.reshape(mag_output[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))   # and flatten
+    SNR_output = 10*tf.reduce_sum(tf.log(tf.reduce_sum(signal**2,axis=1)/tf.reduce_sum((signal-Gout)**2,axis=1)))/tf.log(10.0)/FLAGS.batch_size
 
 
     # concate for visualize image
