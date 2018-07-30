@@ -52,7 +52,6 @@ def _summarize_progress(train_data, feature, label, gene_output,
     signal=tf.reshape(mag_gt[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))     # crop out edges
     Gout=tf.reshape(mag_output[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))   # and flatten
     SNR_output = 10*tf.reduce_sum(tf.log(tf.reduce_sum(signal**2,axis=1)/tf.reduce_sum((signal-Gout)**2,axis=1)))/tf.log(10.0)/FLAGS.batch_size
-    tf.summary.scalar('SNR_loss', SNR_output)
 
     # concate for visualize image
     if FLAGS.use_phase==True:
@@ -62,15 +61,13 @@ def _summarize_progress(train_data, feature, label, gene_output,
     image = image[0:max_samples,:,:,:]
     image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
     snr_summary_op=tf.summary.merge_all()
-    image,snr = td.sess.run([image,snr_summary_op])
+    image,snr = td.sess.run([image,SNR_output])
     print('save to image size ', image.shape, 'type ', type(image))
-    
     # 3rd channel for visualization
     mag_3rd = np.maximum(image[:,:,0],image[:,:,1])
     image = np.concatenate((image, mag_3rd[:,:,np.newaxis]),axis=2)
 
     # save to image file
-    print('save to image,', image.shape)
     filename = 'batch%06d_%s.png' % (batch, suffix)
     filename = os.path.join(FLAGS.train_dir, filename)
     try:
@@ -220,6 +217,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         # export test batches
         if batch % FLAGS.summary_period == 0:
             # loop different test batch
+            snr=0
             for index_batch_test in range(int(num_batch_test)):
                 # get test feature
                 test_feature = list_test_features[index_batch_test]
@@ -254,17 +252,16 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 # gene layers are too large
                 if index_batch_test>0:
                     gene_param['gene_layers']=[]
-                snr=_summarize_progress(td, test_feature, test_label, gene_output, batch, 
+                snr+=_summarize_progress(td, test_feature, test_label, gene_output, batch, 
                                     'test{0}'.format(index_batch_test),                                     
                                     max_samples = batch_size,
                                     gene_param = gene_param)
-		sum_writer.add_summary(snr,batch)
                 # try to reduce mem
                 gene_output = None
                 gene_layers = None
                 disc_layers = None
                 accumuated_err_loss = []
-
+            print('SNR: ',snr/num_batch_test)
         # export train batches
         if OUTPUT_TRAIN_SAMPLES and (batch % FLAGS.summary_train_period == 0):
             # get train data
