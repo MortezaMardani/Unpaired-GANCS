@@ -219,7 +219,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         # export test batches
         if batch % FLAGS.summary_period == 0:
             # loop different test batch
-            snr=0
+            snr=mse=0
             for index_batch_test in range(int(num_batch_test)):
                 # get test feature
                 test_feature = list_test_features[index_batch_test]
@@ -254,16 +254,18 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 # gene layers are too large
                 if index_batch_test>0:
                     gene_param['gene_layers']=[]
-                snr+=_summarize_progress(td, test_feature, test_label, gene_output, batch, 
+                snr_b,mse_b=_summarize_progress(td, test_feature, test_label, gene_output, batch, 
                                     'test{0}'.format(index_batch_test),                                     
                                     max_samples = batch_size,
                                     gene_param = gene_param)
+		snr+=snr_b
+		mse+=mse_b
                 # try to reduce mem
                 gene_output = None
                 gene_layers = None
                 disc_layers = None
                 accumuated_err_loss = []
-            print('SNR: ',snr/num_batch_test)
+            print('SNR: ',snr/num_batch_test,'MSE: ',mse/num_batch_test)
         # export train batches
         if OUTPUT_TRAIN_SAMPLES and (batch % FLAGS.summary_train_period == 0):
             # get train data
