@@ -48,11 +48,13 @@ def _summarize_progress(train_data, feature, label, gene_output,
     label_mag = tf.reshape(label_mag, [FLAGS.batch_size, size[0], size[1], 1])
     mag_gt = tf.concat(axis=3, values=[label_mag, label_mag]) #size (8, 160, 128, 2) 
     
-    # calculate SNR
+    # calculate SNR and MSE for test images
     signal=tf.reshape(mag_gt[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))     # crop out edges
     Gout=tf.reshape(mag_output[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))   # and flatten
-    SNR_output = 10*tf.reduce_sum(tf.log(tf.reduce_sum(signal**2,axis=1)/tf.reduce_sum((signal-Gout)**2,axis=1)))/tf.log(10.0)/FLAGS.batch_size
-
+    s_G=tf.abs(gene_output - labels)
+    SNR_output = 10*tf.reduce_sum(tf.log(tf.reduce_sum(signal**2,axis=1)/tf.reduce_sum(s_G**2,axis=1)))/tf.log(10.0)/FLAGS.batch_size
+    MSE=tf.reduce_mean(s_G)
+    
     # concate for visualize image
     if FLAGS.use_phase==True:
       image = tf.concat(axis=2, values=[complex_zpad, mag_zpad, mag_output, mag_gt])
@@ -61,7 +63,7 @@ def _summarize_progress(train_data, feature, label, gene_output,
     image = image[0:max_samples,:,:,:]
     image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
     snr_summary_op=tf.summary.merge_all()
-    image,snr = td.sess.run([image,SNR_output])
+    image,snr,mse = td.sess.run([image,SNR_output,MSE])
     print('save to image size ', image.shape, 'type ', type(image))
     # 3rd channel for visualization
     mag_3rd = np.maximum(image[:,:,0],image[:,:,1])
@@ -98,7 +100,7 @@ def _summarize_progress(train_data, feature, label, gene_output,
             json.dump(gene_param, outfile)
         print("    Saved %s" % (filename,))
         '''
-    return snr
+    return snr,mse
 
 def _save_checkpoint(train_data, batch):
     td = train_data
