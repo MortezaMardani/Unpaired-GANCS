@@ -356,8 +356,8 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     # Fully convolutional model
     mapsize = 3
     layers  = [4, 8, 16, 32]#[8, 16, 32, 64]#[64, 128, 256, 512]
-
     old_vars = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
+    output_layers = []
     
     # apply dropout to inputs to the disc
     if FLAGS.disc_dropp > 0.0: 
@@ -403,18 +403,30 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=stddev_factor)
     if not FLAGS.wgan_gp: 
         model.add_batch_norm()
+    #  output_layers.append(model.outputs[-1])
     if (FLAGS.activation=='lrelu'):
         model.add_lrelu()
     else:
         model.add_relu()
+    if FLAGS.FM:
+        output_layers.append(model.outputs[-1])
+        print('!!!!!!layerout shape',output_layers[-1].get_shape())
+        E_layer=tf.reduce_mean(model.outputs[-1],axis=(1,2))
+        print('!!!!!!layerout mean ',E_layer.get_shape())
 
     model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=stddev_factor)
     if not FLAGS.wgan_gp: 
         model.add_batch_norm()
+    #  output_layers.append(model.outputs[-1])
     if (FLAGS.activation=='lrelu'):
         model.add_lrelu()
     else:
         model.add_relu()
+    if FLAGS.FM:
+        output_layers.append(model.outputs[-1])
+        print('!!!!!!layerout2 shape',output_layers[-1].get_shape())
+        E_layer=tf.reduce_mean(model.outputs[-1],axis=(1,2))
+        print('!!!!!!layerout2 mean ',E_layer.get_shape())
 
     # Linearly map to real/fake and return average score
     # (softmax will be applied later)
@@ -423,9 +435,6 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
 
     new_vars  = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
     disc_vars = list(set(new_vars) - set(old_vars))
-
-    #select output
-    output_layers = [model.outputs[-3]] + [model.outputs[-2]]
 
     return model.get_output(), disc_vars, output_layers
 
@@ -663,7 +672,6 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         gene_layers = gene_layers_1
 
         
-        
         if FLAGS.use_phase == True:
           pass
         else:
@@ -709,14 +717,14 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
                 for j in range(4):
                     disc_input_patch=disc_real_input[:, r*i:r*(i+1) ,c*j:c*(j+1), :]
                     if i==j==0:
-                        disc_real_patch, disc_var_list, disc_layers =_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
+                        disc_real_patch, disc_var_list, disc_layers_X =_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
                     else: 
                         disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
                     patch_list.append(disc_real_patch)
             disc_real_output=tf.stack(patch_list)
             #print("patch and stacked fake_out SHAPE!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
         else:
-            disc_real_output, disc_var_list, disc_layers = \
+            disc_real_output, disc_var_list, disc_layers_X = \
                 _discriminator_model(sess, features, disc_real_input, hybrid_disc=FLAGS.hybrid_disc)
 
         scope.reuse_variables()
@@ -725,19 +733,19 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
             patch_list=[]
             r=int(FLAGS.sample_size/4)
             c=int(FLAGS.sample_size_y/4)
-            #print("Row Col per patch !!!!!", r,c)
+            #print("Row Col per patch", r,c)
             for i in range(4):
                 for j in range(4):
                     gene_output_patch=gene_output_abs[:, r*i:r*(i+1) ,c*j:c*(j+1) ,:]
-                    disc_fake_patch,_,_=_discriminator_model(sess, features, gene_output_patch, hybrid_disc=FLAGS.hybrid_disc)
+                    disc_fake_patch,_,disc_layers_Z=_discriminator_model(sess, features, gene_output_patch, hybrid_disc=FLAGS.hybrid_disc)
                     patch_list.append(disc_fake_patch)
             disc_fake_output=tf.stack(patch_list)
-            #print("patch and stacked fake_out SHAPE!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
+            #print("patch and stacked fake_out SHAPE",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
         else:
-            disc_fake_output, _, _ = _discriminator_model(sess, features, gene_output_abs, hybrid_disc=FLAGS.hybrid_disc)
+            disc_fake_output, _, disc_layers_Z = _discriminator_model(sess, features, gene_output_abs, hybrid_disc=FLAGS.hybrid_disc)
 
     return [gene_minput, gene_moutput, gene_output, gene_var_list, gene_layers, gene_mlayers,
-            disc_real_output, disc_fake_output, disc_var_list, disc_layers]    
+            disc_real_output, disc_fake_output, disc_var_list, disc_layers_X, disc_layers_Z]    
 
 
 # SSIM
@@ -825,7 +833,7 @@ def loss_DSSIS_tf11(y_true, y_pred, patch_size=5, batch_size=-1):
     # ssim = tf.select(tf.is_nan(ssim), K.zeros_like(ssim), ssim)
     return tf.reduce_mean(((1.0 - ssim) / 2), name='ssim_loss')
 
-def create_generator_loss(disc_output, gene_output, features, labels, masks):
+def create_generator_loss(disc_output, gene_output, features, labels, masks, X,Z):
     # I.e. did we fool the discriminator?
     cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_output, labels=tf.ones_like(disc_output))
 
@@ -901,7 +909,9 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks):
     
     #gene_mse_factor as a parameter
     gene_loss     = tf.add((1.0 - gene_mse_factor) * gene_non_mse_l2, gene_mse_factor * gene_mixmse_loss, name='gene_loss')
-
+    # use feature matching
+    if FLAGS.FM:
+        gene_loss=tf.reduce_mean((X[0]-Z[0])*(X[0]-Z[0]))+tf.reduce_mean((X[1]-Z[1])*(X[1]-Z[1]))
     # log to tensorboard
     #tf.summary.scalar('gene_non_mse_loss', gene_non_mse_l2)
     tf.summary.scalar('gene_fool_loss', gene_non_mse_l2)
