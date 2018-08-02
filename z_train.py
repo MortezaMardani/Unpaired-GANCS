@@ -51,7 +51,7 @@ def _summarize_progress(train_data, feature, label, gene_output,
     # calculate SNR and MSE for test images
     signal=tf.reshape(mag_gt[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))     # crop out edges
     Gout=tf.reshape(mag_output[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))   # and flatten
-    s_G=tf.abs(gene_output - labels)
+    s_G=tf.abs(signal-Gout)
     SNR_output = 10*tf.reduce_sum(tf.log(tf.reduce_sum(signal**2,axis=1)/tf.reduce_sum(s_G**2,axis=1)))/tf.log(10.0)/FLAGS.batch_size
     MSE=tf.reduce_mean(s_G)
     
@@ -258,8 +258,8 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                                     'test{0}'.format(index_batch_test),                                     
                                     max_samples = batch_size,
                                     gene_param = gene_param)
-		snr+=snr_b
-		mse+=mse_b
+                snr+=snr_b
+                mse+=mse_b
                 # try to reduce mem
                 gene_output = None
                 gene_layers = None

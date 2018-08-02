@@ -425,7 +425,7 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     disc_vars = list(set(new_vars) - set(old_vars))
 
     #select output
-    output_layers = [model.outputs[0]] + model.outputs[1:-1][::layer_output_skip] + [model.outputs[-1]]
+    output_layers = [model.outputs[-3]] + [model.outputs[-2]]
 
     return model.get_output(), disc_vars, output_layers
 
