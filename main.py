@@ -98,6 +98,9 @@ tf.app.flags.DEFINE_float('disc_dropp', 0.0,
 tf.app.flags.DEFINE_float('epsilon', 1e-8,
                           "Fuzz term to avoid numerical instability")
 
+tf.app.flags.DEFINE_bool('FM', False,
+                         "Whether to use feature matching.")
+
 tf.app.flags.DEFINE_string('run', 'train',
                             "Which operation to run. [demo|train]")   #demo
 
@@ -459,11 +462,11 @@ def _train():
                            tf.random_normal(train_features.get_shape(), stddev=noise_level)
 
     # Create and initialize model
-    [gene_minput, gene_moutput, gene_output, gene_var_list, gene_layers, gene_mlayers, disc_real_output, disc_fake_output, disc_var_list, disc_layers] = \
+    [gene_minput, gene_moutput, gene_output, gene_var_list, gene_layers, gene_mlayers, disc_real_output, disc_fake_output, disc_var_list, disc_layers_X, disc_layers_Z] = \
             z_model.create_model(sess, noisy_train_features, train_labels, train_masks, architecture=FLAGS.architecture)
 
     gene_loss, gene_dc_loss, gene_ls_loss, list_gene_losses, gene_mse_factor = \
-                     z_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks)
+                     z_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks,disc_layers_X, disc_layers_Z)
     
     if FLAGS.wgan_gp: # WGAN
       disc_loss,disc_fake_loss,disc_real_loss = z_model.create_discriminator_loss(disc_real_output, disc_fake_output, \
