@@ -6,6 +6,7 @@ import tensorflow as tf
 import time
 import json
 from scipy.io import savemat
+import z_model
 
 FLAGS = tf.app.flags.FLAGS
 OUTPUT_TRAIN_SAMPLES = 0
@@ -48,12 +49,15 @@ def _summarize_progress(train_data, feature, label, gene_output,
     label_mag = tf.reshape(label_mag, [FLAGS.batch_size, size[0], size[1], 1])
     mag_gt = tf.concat(axis=3, values=[label_mag, label_mag]) #size (8, 160, 128, 2) 
     
-    # calculate SNR and MSE for test images
-    signal=tf.reshape(mag_gt[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))     # crop out edges
-    Gout=tf.reshape(mag_output[:,20:size[0]-20,14:size[1]-14,0],(FLAGS.batch_size,-1))   # and flatten
+    # calculate SSIM SNR and MSE for test images
+    signal=mag_gt[:,20:size[0]-20,14:size[1]-14,0]    # crop out edges
+    Gout=mag_output[:,20:size[0]-20,14:size[1]-14,0]
+    ssim=loss_DSSIS_tf11(signal, Gout)
+    signal=tf.reshape(signal,(FLAGS.batch_size,-1))   # and flatten
+    Gout=tf.reshape(Gout,(FLAGS.batch_size,-1))    
     s_G=tf.abs(signal-Gout)
     SNR_output = 10*tf.reduce_sum(tf.log(tf.reduce_sum(signal**2,axis=1)/tf.reduce_sum(s_G**2,axis=1)))/tf.log(10.0)/FLAGS.batch_size
-    MSE=tf.reduce_mean(s_G)
+    mse=tf.reduce_mean(s_G)   
     
     # concate for visualize image
     if FLAGS.use_phase==True:
@@ -100,7 +104,7 @@ def _summarize_progress(train_data, feature, label, gene_output,
             json.dump(gene_param, outfile)
         print("    Saved %s" % (filename,))
         '''
-    return snr,mse
+    return snr,mse,ssim
 
 def _save_checkpoint(train_data, batch):
     td = train_data
@@ -219,7 +223,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
         # export test batches
         if batch % FLAGS.summary_period == 0:
             # loop different test batch
-            snr=mse=0
+            snr=mse=ssim=0
             for index_batch_test in range(int(num_batch_test)):
                 # get test feature
                 test_feature = list_test_features[index_batch_test]
@@ -254,12 +258,13 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 # gene layers are too large
                 if index_batch_test>0:
                     gene_param['gene_layers']=[]
-                snr_b,mse_b=_summarize_progress(td, test_feature, test_label, gene_output, batch, 
+                snr_b,mse_b,ssim_b=_summarize_progress(td, test_feature, test_label, gene_output, batch, 
                                     'test{0}'.format(index_batch_test),                                     
                                     max_samples = batch_size,
                                     gene_param = gene_param)
                 snr+=snr_b
                 mse+=mse_b
+                ssim+=ssim_b
                 # try to reduce mem
                 gene_output = None
                 gene_layers = None
