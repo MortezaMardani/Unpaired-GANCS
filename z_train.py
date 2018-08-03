@@ -50,14 +50,14 @@ def _summarize_progress(train_data, feature, label, gene_output,
     mag_gt = tf.concat(axis=3, values=[label_mag, label_mag]) #size (8, 160, 128, 2) 
     
     # calculate SSIM SNR and MSE for test images
-    signal=mag_gt[:,20:size[0]-20,14:size[1]-14,0]    # crop out edges
-    Gout=mag_output[:,20:size[0]-20,14:size[1]-14,0]
-    ssim=loss_DSSIS_tf11(signal, Gout)
-    signal=tf.reshape(signal,(FLAGS.batch_size,-1))   # and flatten
-    Gout=tf.reshape(Gout,(FLAGS.batch_size,-1))    
+    signal=mag_gt[:,20:size[0]-20,14:size[1]-14,:]    # crop out edges
+    Gout=mag_output[:,20:size[0]-20,14:size[1]-14,:]
+    SSIM=z_model.loss_DSSIS_tf11(signal, Gout)
+    signal=tf.reshape(signal[:,:,:,0],(FLAGS.batch_size,-1))   # and flatten
+    Gout=tf.reshape(Gout[:,:,:,0],(FLAGS.batch_size,-1))    
     s_G=tf.abs(signal-Gout)
     SNR_output = 10*tf.reduce_sum(tf.log(tf.reduce_sum(signal**2,axis=1)/tf.reduce_sum(s_G**2,axis=1)))/tf.log(10.0)/FLAGS.batch_size
-    mse=tf.reduce_mean(s_G)   
+    MSE=tf.reduce_mean(s_G)   
     
     # concate for visualize image
     if FLAGS.use_phase==True:
@@ -67,7 +67,7 @@ def _summarize_progress(train_data, feature, label, gene_output,
     image = image[0:max_samples,:,:,:]
     image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
     snr_summary_op=tf.summary.merge_all()
-    image,snr,mse = td.sess.run([image,SNR_output,MSE])
+    image,snr,mse,ssim = td.sess.run([image,SNR_output,MSE,SSIM])
     print('save to image size ', image.shape, 'type ', type(image))
     # 3rd channel for visualization
     mag_3rd = np.maximum(image[:,:,0],image[:,:,1])
@@ -235,11 +235,11 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 # ops = [td.gene_moutput, td.gene_mlayers, td.gene_var_list, td.disc_var_list, td.disc_layers]
                 # gene_output, gene_layers, gene_var_list, disc_var_list, disc_layers= td.sess.run(ops, feed_dict=feed_dict)       
                 
-                ops = [td.gene_moutput, td.gene_mlayers, td.disc_layers]
+                ops = [td.gene_moutput, td.gene_mlayers]
                 
                 # get timing
                 forward_passing_time = time.time()
-                gene_output, gene_layers, disc_layers= td.sess.run(ops, feed_dict=feed_dict)       
+                gene_output, gene_layers= td.sess.run(ops, feed_dict=feed_dict)       
                 inference_time = time.time() - forward_passing_time
 		
                 # print('gene_var_list',[x.shape for x in gene_var_list])
@@ -253,8 +253,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                               'train_loss':accumuated_err_loss,
                               'gene_loss':list_gene_losses,
                               'inference_time':inference_time,
-                              'gene_layers':[x.tolist() for x in gene_layers if x.shape[-1]<10], 
-                              'disc_layers':[x.tolist() for x in disc_layers]}                
+                              'gene_layers':[x.tolist() for x in gene_layers if x.shape[-1]<10]}                
                 # gene layers are too large
                 if index_batch_test>0:
                     gene_param['gene_layers']=[]
@@ -268,9 +267,9 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 # try to reduce mem
                 gene_output = None
                 gene_layers = None
-                disc_layers = None
+                #disc_layers = None
                 accumuated_err_loss = []
-            print('SNR: ',snr/num_batch_test,'MSE: ',mse/num_batch_test)
+            print('SNR: ',snr/num_batch_test,'MSE: ',mse/num_batch_test,'SSIM: ',ssim/num_batch_test)
         # export train batches
         if OUTPUT_TRAIN_SAMPLES and (batch % FLAGS.summary_train_period == 0):
             # get train data

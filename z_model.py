@@ -409,10 +409,8 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     else:
         model.add_relu()
     if FLAGS.FM:
-        output_layers.append(model.outputs[-1])
-        print('!!!!!!layerout shape',output_layers[-1].get_shape())
-        E_layer=tf.reduce_mean(model.outputs[-1],axis=(1,2))
-        print('!!!!!!layerout mean ',E_layer.get_shape())
+        E_layer1=tf.reduce_mean(model.outputs[-1],axis=(1,2))
+        output_layers.append(E_layer1)
 
     model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=stddev_factor)
     if not FLAGS.wgan_gp: 
@@ -423,10 +421,8 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     else:
         model.add_relu()
     if FLAGS.FM:
-        output_layers.append(model.outputs[-1])
-        print('!!!!!!layerout2 shape',output_layers[-1].get_shape())
-        E_layer=tf.reduce_mean(model.outputs[-1],axis=(1,2))
-        print('!!!!!!layerout2 mean ',E_layer.get_shape())
+        E_layer2=tf.reduce_mean(model.outputs[-1],axis=(1,2)) # (8, 32)
+        output_layers.append(E_layer2)
 
     # Linearly map to real/fake and return average score
     # (softmax will be applied later)
@@ -722,7 +718,7 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
                         disc_real_patch,_,_=_discriminator_model(sess, features, disc_input_patch, hybrid_disc=FLAGS.hybrid_disc)
                     patch_list.append(disc_real_patch)
             disc_real_output=tf.stack(patch_list)
-            #print("patch and stacked fake_out SHAPE!!!!!",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
+            #print("patch and stacked fake_out SHAPE",disc_fake_patch.get_shape(),disc_fake_output.get_shape())
         else:
             disc_real_output, disc_var_list, disc_layers_X = \
                 _discriminator_model(sess, features, disc_real_input, hybrid_disc=FLAGS.hybrid_disc)
