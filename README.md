@@ -164,5 +164,11 @@ exp30 (8/1 2033): 1/2 label (9 pat.), else same as exp29
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels2 ...
 
+exp31 (8/2 1700): feature matching version beta
 
-TODO: Feature matching, stochastic label, dropout/Gaussian in input/intermidiate disc layers, pretrain gene with pure mse and ground truth input with data outside train set
+exp31a (8/2 2230): feature matching 1/3 label with commit c2cac4d
+
+python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_5fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --summary_period 1700 --train_dir ./train_dir/exp31a --checkpoint_dir ./checkpoint/exp31a --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5 --FM True
+
+
+TODO: stochastic label, dropout/Gaussian in input/intermidiate disc layers, pretrain gene with pure mse and ground truth input with data outside train set
