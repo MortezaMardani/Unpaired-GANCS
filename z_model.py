@@ -886,12 +886,10 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks, X,Z
     
     if FLAGS.wgan_gp:
         gene_wgan_gp_loss = -tf.reduce_mean(disc_output)   # wgan gene loss
-        gene_fool_loss = tf.add((1.0 - FLAGS.gene_log_factor) * gene_wgan_gp_loss, 
-            FLAGS.gene_log_factor * gene_ce_loss, name='gene_fool_loss')
+        gene_fool_loss = tf.add((1.0 - FLAGS.gene_log_factor) * gene_wgan_gp_loss, name='gene_fool_loss')
     else:
         # generator fool descriminator loss: gan LS or log loss
-        gene_fool_loss = tf.add((1.0 - FLAGS.gene_log_factor) * gene_ls_loss,
-                               FLAGS.gene_log_factor * gene_ce_loss, name='gene_fool_loss')
+        gene_fool_loss = tf.add((1.0 - FLAGS.gene_log_factor) * gene_ls_loss, name='gene_fool_loss')
 
     # non-mse loss = fool-loss + data consisntency loss
     gene_non_mse_l2     = tf.add((1.0 - FLAGS.gene_dc_factor) * gene_fool_loss,
