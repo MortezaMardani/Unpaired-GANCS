@@ -907,7 +907,7 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks, X,Z
     gene_loss     = tf.add((1.0 - gene_mse_factor) * gene_non_mse_l2, gene_mse_factor * gene_mixmse_loss, name='gene_loss')
     # use feature matching
     if FLAGS.FM:
-        gene_loss=tf.reduce_mean((X[0]-Z[0])*(X[0]-Z[0]))+tf.reduce_mean((X[1]-Z[1])*(X[1]-Z[1]))
+        gene_loss+=0.5*tf.reduce_mean((X[0]-Z[0])*(X[0]-Z[0]))+0.5*tf.reduce_mean((X[1]-Z[1])*(X[1]-Z[1]))
     # log to tensorboard
     #tf.summary.scalar('gene_non_mse_loss', gene_non_mse_l2)
     tf.summary.scalar('gene_fool_loss', gene_non_mse_l2)
