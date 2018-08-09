@@ -835,13 +835,8 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks, X,Z
 
     # LS cost
     ls_loss = tf.square(disc_output - tf.ones_like(disc_output))
-    
-    if FLAGS.use_patches==True:
-        gene_ls_loss = tf.squeeze(tf.reduce_mean(ls_loss, axis=[0,1], name='gene_ls_loss'))
-        gene_ce_loss = tf.squeeze(tf.reduce_mean(cross_entropy, axis=[0,1], name='gene_ce_loss'))
-    else:
-        gene_ls_loss = tf.reduce_mean(ls_loss, name='gene_ls_loss')
-        gene_ce_loss = tf.reduce_mean(cross_entropy, name='gene_ce_loss')
+    gene_ls_loss = tf.reduce_mean(ls_loss, name='gene_ls_loss')
+    gene_ce_loss = tf.reduce_mean(cross_entropy, name='gene_ce_loss')
 
 
     # I.e. does the result look like the feature?
@@ -886,10 +881,10 @@ def create_generator_loss(disc_output, gene_output, features, labels, masks, X,Z
     
     if FLAGS.wgan_gp:
         gene_wgan_gp_loss = -tf.reduce_mean(disc_output)   # wgan gene loss
-        gene_fool_loss = tf.add((1.0 - FLAGS.gene_log_factor) * gene_wgan_gp_loss, name='gene_fool_loss')
+        gene_fool_loss = (1.0 - FLAGS.gene_log_factor) * gene_wgan_gp_loss
     else:
         # generator fool descriminator loss: gan LS or log loss
-        gene_fool_loss = tf.add((1.0 - FLAGS.gene_log_factor) * gene_ls_loss, name='gene_fool_loss')
+        gene_fool_loss = (1.0 - FLAGS.gene_log_factor) * gene_ls_loss
 
     # non-mse loss = fool-loss + data consisntency loss
     gene_non_mse_l2     = tf.add((1.0 - FLAGS.gene_dc_factor) * gene_fool_loss,
@@ -929,9 +924,9 @@ def create_discriminator_loss(disc_real_output, disc_fake_output, real_data = No
     
     if FLAGS.wgan_gp:
         disc_cost = tf.reduce_mean(disc_fake_output) - tf.reduce_mean(disc_real_output)  
-        interpolates = real_data + alpha*(fake_data - real_data)
         # generate noisy inputs 
-        alpha = tf.random_uniform(shape=[FLAGS.batch_size, 1, 1, 1], minval=0.,maxval=1.)  
+        alpha = tf.random_uniform(shape=[FLAGS.batch_size, 1, 1, 1], minval=0.,maxval=1.) 
+        interpolates = real_data + alpha*(fake_data - real_data) 
         if FLAGS.use_patches==True:
             gp_patch=[]
             dloss_patch=[]
@@ -970,16 +965,9 @@ def create_discriminator_loss(disc_real_output, disc_fake_output, real_data = No
     else:
         ls_loss_real = tf.square(disc_real_output - tf.ones_like(disc_real_output))
         # ls loss
-        if FLAGS.use_patches==True:
-            disc_real_loss = tf.squeeze(tf.reduce_mean(ls_loss_real, axis=[0,1], name='disc_real_loss'))
-        else:
-            disc_real_loss = tf.reduce_mean(ls_loss_real, name='disc_real_loss')
-
+        disc_real_loss = tf.reduce_mean(ls_loss_real, name='disc_real_loss')
         ls_loss_fake = tf.square(disc_fake_output)
-        if FLAGS.use_patches==True:
-            disc_fake_loss = tf.squeeze(tf.reduce_mean(ls_loss_fake, axis=[0,1], name='disc_fake_loss'))
-        else:
-            disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
+        disc_fake_loss = tf.reduce_mean(ls_loss_fake, name='disc_fake_loss')
 
         # log to tensorboard
         tf.summary.scalar('disc_real_loss',disc_real_loss)
