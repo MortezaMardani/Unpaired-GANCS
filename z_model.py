@@ -929,16 +929,38 @@ def create_discriminator_loss(disc_real_output, disc_fake_output, real_data = No
     
     if FLAGS.wgan_gp:
         disc_cost = tf.reduce_mean(disc_fake_output) - tf.reduce_mean(disc_real_output)  
-        # generate noisy inputs 
-        alpha = tf.random_uniform(shape=[FLAGS.batch_size, 1, 1, 1], minval=0.,maxval=1.)    
         interpolates = real_data + alpha*(fake_data - real_data)
-        with tf.variable_scope('disc', reuse=True) as scope:
-            interpolates_disc_output, _, _ = _discriminator_model(None,None, interpolates, hybrid_disc=FLAGS.hybrid_disc)
-            gradients = tf.gradients(interpolates_disc_output, [interpolates])[0] 
-            gradients = tf.layers.flatten(gradients)  # [batch_size, -1] 
-        slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))  
-        gradient_penalty = tf.reduce_mean((slopes - 1.)**2)
-        disc_loss = tf.add(disc_cost, 10. * gradient_penalty, name='disc_loss')
+        # generate noisy inputs 
+        alpha = tf.random_uniform(shape=[FLAGS.batch_size, 1, 1, 1], minval=0.,maxval=1.)  
+        if FLAGS.use_patches==True:
+            gp_patch=[]
+            dloss_patch=[]
+            r=int(FLAGS.sample_size/4)
+            c=int(FLAGS.sample_size_y/4)
+            for i in range(4):
+                for j in range(4):
+                    interpolates_patch=interpolates[:, r*i:r*(i+1) ,c*j:c*(j+1), :]
+                    with tf.variable_scope('disc',reuse=tf.AUTO_REUSE) as scope:
+                        interpolates_disc_output, _, _ = _discriminator_model(None,None, interpolates_patch, hybrid_disc=FLAGS.hybrid_disc)
+                        gradients = tf.gradients(interpolates_disc_output, [interpolates_patch])[0] 
+                        gradients = tf.layers.flatten(gradients)  # [batch_size, -1] 
+                    slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))  
+                    gradient_penalty = tf.reduce_mean((slopes - 1.)**2)
+                    disc_loss = tf.add(disc_cost, 10. * gradient_penalty, name='disc_loss')
+                    gp_patch.append(gradient_penalty)
+                    dloss_patch.append(disc_loss)            
+            gp_patch=tf.stack(gp_patch)
+            dloss_patch=tf.stack(dloss_patch)
+            gradient_penalty=tf.reduce_mean(gp_patch)
+            disc_loss=tf.reduce_mean(dloss_patch)
+        else: 
+            with tf.variable_scope('disc', reuse=True) as scope:
+                interpolates_disc_output, _, _ = _discriminator_model(None,None, interpolates, hybrid_disc=FLAGS.hybrid_disc)
+                gradients = tf.gradients(interpolates_disc_output, [interpolates])[0] 
+                gradients = tf.layers.flatten(gradients)  # [batch_size, -1] 
+            slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))  
+            gradient_penalty = tf.reduce_mean((slopes - 1.)**2)
+            disc_loss = tf.add(disc_cost, 10. * gradient_penalty, name='disc_loss')
 
         tf.summary.scalar('disc_gp_loss',gradient_penalty)        
         tf.summary.scalar('disc_total_loss',disc_loss)
