@@ -6,7 +6,7 @@ import tensorflow as tf
 import time
 import json
 from scipy.io import savemat
-import z_model
+import wgancs_model
 
 FLAGS = tf.app.flags.FLAGS
 OUTPUT_TRAIN_SAMPLES = 0
@@ -52,7 +52,7 @@ def _summarize_progress(train_data, feature, label, gene_output,
     # calculate SSIM SNR and MSE for test images
     signal=mag_gt[:,20:size[0]-20,14:size[1]-14,:]    # crop out edges
     Gout=mag_output[:,20:size[0]-20,14:size[1]-14,:]
-    SSIM=z_model.loss_DSSIS_tf11(signal, Gout)
+    SSIM=wgancs_model.loss_DSSIS_tf11(signal, Gout)
     signal=tf.reshape(signal[:,:,:,0],(FLAGS.batch_size,-1))   # and flatten
     Gout=tf.reshape(Gout[:,:,:,0],(FLAGS.batch_size,-1))    
     s_G=tf.abs(signal-Gout)

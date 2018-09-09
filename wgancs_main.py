@@ -37,10 +37,10 @@ python3 main.py  --run train \
                       --train_dir /mnt/raid5/morteza/GANCS-MRI/train_save_all
 """
 
-#import z_demo
-import z_input
-import z_model
-import z_train
+#import wgancs_demo
+import wgancs_input
+import wgancs_model
+import wgancs_train
 
 import os.path
 import random
@@ -304,13 +304,13 @@ def _demo():
     filenames = prepare_dirs(delete_train_dir=False)
 
     # Setup async input queues
-    features, labels = z_input.setup_inputs(sess, filenames)
+    features, labels = wgancs_input.setup_inputs(sess, filenames)
 
     # Create and initialize model
     [gene_minput, gene_moutput,
      gene_output, gene_var_list,
      disc_real_output, disc_fake_output, disc_var_list] = \
-            z_model.create_model(sess, features, labels)
+            wgancs_model.create_model(sess, features, labels)
 
     # Restore variables from checkpoint
     saver = tf.train.Saver()
@@ -319,7 +319,7 @@ def _demo():
     saver.restore(sess, filename)
 
     # Execute demo
-    z_demo.demo1(sess)
+    wgancs_demo.demo1(sess)
 
 class TrainData(object):
     def __init__(self, dictionary):
@@ -421,7 +421,7 @@ def _train():
         mask = None
         print("[warining] NO MASK PATTERN!!!")
     # Setup async input queues
-    train_features, train_labels, train_masks = z_input.setup_inputs_one_sources(sess, train_filenames_input, train_filenames_output, 
+    train_features, train_labels, train_masks = wgancs_input.setup_inputs_one_sources(sess, train_filenames_input, train_filenames_output, 
                                                                         image_size=image_size, 
                                                                         label_size=label_size,
                                                                         # undersampling
@@ -431,7 +431,7 @@ def _train():
                                                                         r_seed=FLAGS.R_seed,
                                                                         sampling_mask=mask
                                                                         )
-    test_features,  test_labels, test_masks = z_input.setup_inputs_one_sources(sess, test_filenames_input, test_filenames_output,
+    test_features,  test_labels, test_masks = wgancs_input.setup_inputs_one_sources(sess, test_filenames_input, test_filenames_output,
                                                                         image_size=image_size, 
                                                                         label_size=label_size,
                                                                         # undersampling
@@ -463,21 +463,21 @@ def _train():
 
     # Create and initialize model
     [gene_minput, gene_moutput, gene_output, gene_var_list, gene_layers, gene_mlayers, disc_real_output, disc_fake_output, disc_var_list, disc_layers_X, disc_layers_Z] = \
-            z_model.create_model(sess, noisy_train_features, train_labels, train_masks, architecture=FLAGS.architecture)
+            wgancs_model.create_model(sess, noisy_train_features, train_labels, train_masks, architecture=FLAGS.architecture)
 
     gene_loss, gene_dc_loss, gene_ls_loss, list_gene_losses, gene_mse_factor = \
-                     z_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks,disc_layers_X, disc_layers_Z)
+                     wgancs_model.create_generator_loss(disc_fake_output, gene_output, train_features, train_labels, train_masks,disc_layers_X, disc_layers_Z)
     
     if FLAGS.wgan_gp: # WGAN
-      disc_loss,disc_fake_loss,disc_real_loss = z_model.create_discriminator_loss(disc_real_output, disc_fake_output, \
+      disc_loss,disc_fake_loss,disc_real_loss = wgancs_model.create_discriminator_loss(disc_real_output, disc_fake_output, \
                                                     real_data = tf.identity(train_labels), fake_data = tf.abs(gene_output))
     else:  # LSGAN
       disc_real_loss, disc_fake_loss = \
-                     z_model.create_discriminator_loss(disc_real_output, disc_fake_output)
+                     wgancs_model.create_discriminator_loss(disc_real_output, disc_fake_output)
       disc_loss = tf.add(disc_real_loss, disc_fake_loss, name='disc_loss')
     
     (global_step, learning_rate, gene_minimize, disc_minimize) = \
-            z_model.create_optimizers(gene_loss, gene_var_list,
+            wgancs_model.create_optimizers(gene_loss, gene_var_list,
                                          disc_loss, disc_var_list)
     summary_op=tf.summary.merge_all()
     # Restore variables from checkpoint
@@ -493,7 +493,7 @@ def _train():
         sess.run(tf.global_variables_initializer())
     # Train model
     train_data = TrainData(locals())
-    z_train.train_model(train_data, FLAGS.starting_batch, num_sample_train, num_sample_test)
+    wgancs_train.train_model(train_data, FLAGS.starting_batch, num_sample_train, num_sample_test)
 
 def main(argv=None):
     # Training or showing off?
