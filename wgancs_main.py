@@ -2,9 +2,6 @@
 train on GAN-CS 
 example
 export CUDA_VISIBLE_DEVICES=0
-python main.py --dataset_input /home/enhaog/GANCS/srez/dataset_MRI/phantom \
-                    --dataset_output  /home/enhaog/GANCS/srez/dataset_MRI/phantom \
-                    --run train \
 
 # with sub sampling
 python main.py --run train \
@@ -137,7 +134,7 @@ tf.app.flags.DEFINE_integer('learning_rate_half_life', 100000,
 tf.app.flags.DEFINE_bool('log_device_placement', False,
                          "Log the device where variables are placed.")
 
-tf.app.flags.DEFINE_integer('mse_batch', 0,
+tf.app.flags.DEFINE_integer('mse_batch', -200,
                             "Number of batches to run with pure mse loss.")
 
 tf.app.flags.DEFINE_integer('number_of_copies', 3,
