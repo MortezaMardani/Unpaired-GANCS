@@ -4,18 +4,30 @@ This code implements the recovery of image x from the undersampled measurements 
 
 # Command line
 
-python3 main.py 
+python3 wgancs_main.py 
+
 --dataset_train ./Knee-highresolution-19cases/train_small 
---dataset_label ./Knee-highresolution-19cases/partial_labels 
+
+--dataset_label ./Knee-highresolution-19cases/partial_labels
+
 --dataset_test ./Knee-highresolution-19cases/test_small 
+
 --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_5fold_160_128_knee_vdrad.mat 
+
 --sample_size 320 --sample_size_y 256 
+
 --batch_size 8 --sample_test 24 
+
 --summary_period 1700 
+
 --train_dir ./train_dir/exp29 
+
 --checkpoint_dir ./checkpoint/exp29 
+
 --wgan_gp True 
+
 --activation lrelu 
+
 --learning_rate_start 5e-5
 
 # Datasets
