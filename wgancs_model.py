@@ -367,7 +367,7 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     if hybrid_disc>0:
         disc_size = tf.shape(disc_input)#disc_input.get_shape()
         #print("DISCINPUT",disc_size)        
-        disc_kspace = Fourier(disc_input, separate_complex=False)
+        disc_kspace = Fourier(disc_input, separate_complex=True)
         disc_kspace_real = tf.cast(tf.real(disc_kspace), tf.float32)
         #print(disc_kspace_real)
         disc_kspace_real = tf.reshape(disc_kspace_real, [disc_size[0],disc_size[1],disc_size[2],1])
@@ -377,9 +377,9 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
         disc_kspace_mag = tf.cast(tf.abs(disc_kspace), tf.float32)
         #print(disc_kspace_mag)
         disc_kspace_mag = tf.log(disc_kspace_mag)
-        disc_kspace_mag = tf.reshape(disc_kspace_mag, [disc_size[0],disc_size[1],disc_size[2],1])
+        disc_kspace_mag = tf.reshape(disc_kspace_mag/tf.reduce_max(disc_kspace_mag), [disc_size[0],disc_size[1],disc_size[2],1])
         if hybrid_disc == 1:
-            disc_hybird = tf.concat(axis = 3, values = [disc_input * 2-1, disc_kspace_imag])
+            disc_hybird = tf.concat(axis = 3, values = [disc_input * 2-1, disc_kspace_mag])
         else:
             disc_hybird = tf.concat(axis = 3, values = [disc_input * 2-1, disc_kspace_imag, disc_kspace_real, disc_kspace_imag])
     else:
@@ -701,7 +701,7 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
 
     # Discriminator with real data
     disc_real_input = tf.identity(labels, name='disc_real_input')
-
+   
     # TBD: Is there a better way to instance the discriminator?
     with tf.variable_scope('disc',reuse=tf.AUTO_REUSE) as scope:
         #print('hybrid_disc', FLAGS.hybrid_disc)
@@ -827,7 +827,7 @@ def loss_DSSIS_tf11(y_true, y_pred, patch_size=5, batch_size=-1):
     ssim /= denom
     #print(ssim)
     # ssim = tf.select(tf.is_nan(ssim), K.zeros_like(ssim), ssim)
-    return tf.reduce_mean(((1.0 - ssim) / 2), name='ssim_loss')
+    return tf.reduce_mean(ssim, name='ssim') #tf.reduce_mean(((1.0 - ssim) / 2), name='ssim_loss')
 
 def create_generator_loss(disc_output, gene_output, features, labels, masks, X,Z):
     # I.e. did we fool the discriminator?
