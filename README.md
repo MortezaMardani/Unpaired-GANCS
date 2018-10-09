@@ -200,6 +200,8 @@ exp34 (8/9 2100): wgan with patch, commit 919f651
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_5fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --summary_period 1700 --train_dir ./train_dir/exp34 --checkpoint_dir ./checkpoint/exp34 --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5 --use_patches True &
 
+exp35n (10/8 1400): normalized hybrid, 5-fold and 1/3 label
+python3 wgancs_main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_5fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5 --summary_period 1000 --train_dir ./train_dir/exp35n --checkpoint_dir ./checkpoint/exp35n  --hybrid_disc 1 
 
-TODO: stochastic label, dropout/Gaussian in input/intermidiate disc layers, pretrain gene with pure mse and ground truth input with data outside train set
+exp36 (10/8 1750): same as above but 1/5 label
 
