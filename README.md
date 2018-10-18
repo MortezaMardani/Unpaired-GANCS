@@ -205,3 +205,12 @@ python3 wgancs_main.py --dataset_train ./Knee-highresolution-19cases/train_small
 
 exp36 (10/8 1750): same as above but 1/5 label
 
+python3 wgancs_main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels5 --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_5fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5 --summary_period 1000 --train_dir ./train_dir/exp36 --checkpoint_dir ./checkpoint/exp36  --hybrid_disc 1 
+
+exp37 normalized hybrid 1/5, 3-fold
+python3 wgancs_main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels5 --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5 --summary_period 1000 --train_dir ./train_dir/exp37 --checkpoint_dir ./checkpoint/exp37  --hybrid_disc 1 
+
+exp38 non-hybrid 4-fold
+python3 wgancs_main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_4fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --mse_batch -200 --wgan_gp True --activation lrelu --learning_rate_start 5e-5 --summary_period 1000 --train_dir ./train_dir/exp38 --checkpoint_dir ./checkpoint/exp38
+
+
