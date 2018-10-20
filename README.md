@@ -124,25 +124,14 @@ python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --data
 
 python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/partial_labels --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/temp --checkpoint_dir ./checkpoint/temp --mse_batch -200 --use_patches True --learning_rate_start 0.0001
 
-26a (6/1): using grad_penalty, diverged a little faster, got best image a bit earlier. with commit fcf6c25 (disgard)
-
-26b (6/2): random patch and shuffle at patch level, with master
-
-26ba: with commit fcf6c25
-
-python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/label26b --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26b --checkpoint_dir ./checkpoint/ckpt26b --mse_batch -200  --learning_rate_start 0.0001 --use_patches True
-
-26c: 4x4 patch and shuffle at patch level, with master
-
-26ca: with commit fcf6c25
-
-python3 main.py --dataset_train ./Knee-highresolution-19cases/train_small --dataset_label ./Knee-highresolution-19cases/label26c --dataset_test ./Knee-highresolution-19cases/test_small --sampling_pattern ./Knee-highresolution-19cases/sampling_pattern/mask_3fold_160_128_knee_vdrad.mat --sample_size 160 --sample_size_y 128 --batch_size 8 --sample_test 24 --train_dir ./train_dir/exp26c --checkpoint_dir ./checkpoint/ckpt26c --mse_batch -200  --learning_rate_start 0.0001 --use_patches True &
-
-26d: random patch and shuffle at image level, with master
-
-26e: 1/5 label
-
-26da: with commit fcf6c25
+-26a (6/1): using grad_penalty, diverged a little faster, got best image a bit earlier. with commit fcf6c25 (disgard)
+-26b (6/2): random patch and shuffle at patch level, with master
+-26ba: with commit fcf6c25
+-26c: 4x4 patch and shuffle at patch level, with master
+-26ca: with commit fcf6c25
+-26d: random patch and shuffle at image level, with master
+-26e: 1/5 label
+-26da: with commit fcf6c25
 
 27th exp (5/31): add three GAN training tricks to 24th
 
