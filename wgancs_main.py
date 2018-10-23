@@ -206,7 +206,7 @@ tf.app.flags.DEFINE_bool('use_patches', False,
 tf.app.flags.DEFINE_bool('use_phase', True,
                             "whether to use two channels for both magnitude and phase")
 
-tf.app.flags.DEFINE_bool('wgan_gp', False, 
+tf.app.flags.DEFINE_bool('wgan_gp', True, 
                          "whether to use WGAN-GP instead of LSGAN")
 
 

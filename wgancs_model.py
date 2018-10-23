@@ -379,7 +379,7 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
         disc_kspace_mag = tf.log(disc_kspace_mag)
         disc_kspace_mag = tf.reshape(disc_kspace_mag/tf.reduce_max(disc_kspace_mag), [disc_size[0],disc_size[1],disc_size[2],1])
         if hybrid_disc == 1:
-            disc_hybird = tf.concat(axis = 3, values = [disc_input * 2-1, disc_kspace_mag])
+            disc_hybird = tf.concat(axis = 3, values = [disc_input , disc_kspace_mag])
         else:
             disc_hybird = tf.concat(axis = 3, values = [disc_input * 2-1, disc_kspace_imag, disc_kspace_real, disc_kspace_imag])
     else:
