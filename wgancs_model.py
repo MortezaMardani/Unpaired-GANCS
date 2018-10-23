@@ -357,7 +357,6 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     mapsize = 3
     layers  = [4, 8, 16, 32]#[8, 16, 32, 64]#[64, 128, 256, 512]
     old_vars = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
-    output_layers = []
     
     # apply dropout to inputs to the disc
     if FLAGS.disc_dropp > 0.0: 
@@ -403,34 +402,28 @@ def _discriminator_model(sess, features, disc_input, layer_output_skip=5, hybrid
     model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=stddev_factor)
     if not FLAGS.wgan_gp: 
         model.add_batch_norm()
-    #  output_layers.append(model.outputs[-1])
     if (FLAGS.activation=='lrelu'):
         model.add_lrelu()
     else:
         model.add_relu()
-    if FLAGS.FM:
-        E_layer1=tf.reduce_mean(model.outputs[-1],axis=(1,2))
-        output_layers.append(E_layer1)
 
     model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=stddev_factor)
     if not FLAGS.wgan_gp: 
         model.add_batch_norm()
-    #  output_layers.append(model.outputs[-1])
     if (FLAGS.activation=='lrelu'):
         model.add_lrelu()
     else:
         model.add_relu()
-    if FLAGS.FM:
-        E_layer2=tf.reduce_mean(model.outputs[-1],axis=(1,2)) # (8, 32)
-        output_layers.append(E_layer2)
 
     # Linearly map to real/fake and return average score
     # (softmax will be applied later)
     model.add_conv2d(1, mapsize=1, stride=1, stddev_factor=stddev_factor)
     model.add_mean()
+    output_layers = [model.outputs[0]] + model.outputs[1:-1][::layer_output_skip] + [model.outputs[-1]]
 
     new_vars  = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
     disc_vars = list(set(new_vars) - set(old_vars))
+    
 
     return model.get_output(), disc_vars, output_layers
 
