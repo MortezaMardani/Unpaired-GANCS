@@ -61,10 +61,11 @@ def _summarize_progress(train_data, feature, label, gene_output,
     
     # concate for visualize image
     if FLAGS.use_phase==True:
-      image = tf.concat(axis=2, values=[complex_zpad, mag_zpad, mag_output, mag_gt])
+      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt,mag_gt-mag_zpad])
     else:
-      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt])
+      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt,mag_gt-mag_zpad])
     image = image[0:max_samples,:,:,:]
+    tf.summary.image('testout',image,8)
     image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
     snr_summary_op=tf.summary.merge_all()
     image,snr,mse,ssim = td.sess.run([image,SNR_output,MSE,SSIM])
