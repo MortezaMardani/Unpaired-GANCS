@@ -451,7 +451,7 @@ def _train():
     # sample train and test
     num_sample_train = len(train_filenames_input)
     num_sample_test = len(test_filenames_input)
-    print('train on {0} samples and test on {1} samples'.format(num_sample_train, num_sample_test))
+    print('train on {0} input, {1} label, test on {2} samples'.format(num_filenames_input,num_filenames_output, num_sample_test))
 
     # Add some noise during training (think denoising autoencoders)
     noise_level = .00
