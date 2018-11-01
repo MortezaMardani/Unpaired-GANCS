@@ -61,13 +61,14 @@ def _summarize_progress(train_data, feature, label, gene_output,
     
     # concate for visualize image
     if FLAGS.use_phase==True:
-      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt,mag_gt-mag_zpad])
+      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt,abs(mag_gt-mag_output)])
     else:
-      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt,mag_gt-mag_zpad])
+      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt,abs(mag_gt-mag_zpad)])
     image = image[0:max_samples,:,:,:]
-    tf.summary.image('testout',image,8)
+    tbimage=tf.concat([image,tf.expand_dims(tf.maximum(image[:,:,:,0],image[:,:,:,1]),-1)],3)
+    #tbimage=tf.expand_dims(image[4:6,:,:,0],-1)
+    #tbimage=tf.summary.image('testout',tbimage,2)
     image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
-    snr_summary_op=tf.summary.merge_all()
     image,snr,mse,ssim = td.sess.run([image,SNR_output,MSE,SSIM])
     print('save to image size ', image.shape, 'type ', type(image))
     # 3rd channel for visualization
@@ -105,7 +106,7 @@ def _summarize_progress(train_data, feature, label, gene_output,
             json.dump(gene_param, outfile)
         print("    Saved %s" % (filename,))
         '''
-    return snr,mse,ssim
+    return snr,mse,ssim,tbimage
 
 def _save_checkpoint(train_data, batch):
     td = train_data
@@ -138,7 +139,7 @@ def _save_checkpoint(train_data, batch):
 
 def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=116):
     td = train_data
-    summary_op = td.summary_op
+    #summary_op = td.summary_op
 
     #td.sess.run(tf.global_variables_initializer())
 
@@ -169,6 +170,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
     # print([type(x) for x in list_test_labels])
     accumuated_err_loss=[]
     sum_writer=tf.summary.FileWriter(FLAGS.train_dir, td.sess.graph)
+    summary_op=tf.summary.merge_all()
     while not done:
         batch += 1
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
@@ -258,18 +260,21 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 # gene layers are too large
                 if index_batch_test>0:
                     gene_param['gene_layers']=[]
-                snr_b,mse_b,ssim_b=_summarize_progress(td, test_feature, test_label, gene_output, batch, 
+                snr_b,mse_b,ssim_b,tbimage=_summarize_progress(td, test_feature, test_label, gene_output, batch, 
                                     'test{0}'.format(index_batch_test),                                     
                                     max_samples = batch_size,
                                     gene_param = gene_param)
                 snr+=snr_b
                 mse+=mse_b
                 ssim+=ssim_b
+                tbimage=tf.summary.image('testout',tbimage,2)
+                sum_writer.add_summary(td.sess.run(tbimage))
                 # try to reduce mem
                 gene_output = None
                 gene_layers = None
                 #disc_layers = None
                 accumuated_err_loss = []
+            write_summary(snr/num_batch_test,'SNR',sum_writer,batch) 
             print('SNR: ',snr/num_batch_test,'MSE: ',mse/num_batch_test,'SSIM: ',ssim/num_batch_test)
         # export train batches
         if OUTPUT_TRAIN_SAMPLES and (batch % FLAGS.summary_train_period == 0):
@@ -288,3 +293,9 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
 
     _save_checkpoint(td, batch)
     print('Finished training!')
+
+def write_summary(value, tag, summary_writer, global_step):
+    """Write a single summary value to tensorboard"""
+    summary = tf.Summary()
+    summary.value.add(tag=tag, simple_value=value)
+    summary_writer.add_summary(summary, global_step)
