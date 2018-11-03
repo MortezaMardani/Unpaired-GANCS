@@ -171,6 +171,7 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
     accumuated_err_loss=[]
     sum_writer=tf.summary.FileWriter(FLAGS.train_dir, td.sess.graph)
     summary_op=tf.summary.merge_all()
+    snr_prev=0
     while not done:
         batch += 1
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
@@ -274,8 +275,9 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 gene_layers = None
                 #disc_layers = None
                 accumuated_err_loss = []
-            write_summary(snr/num_batch_test,'SNR',sum_writer,batch) 
-            print('SNR: ',snr/num_batch_test,'MSE: ',mse/num_batch_test,'SSIM: ',ssim/num_batch_test)
+                Snr=snr/num_batch_test
+            write_summary(Snr,'SNR',sum_writer,batch) 
+            print('SNR: ',Snr,'MSE: ',mse/num_batch_test,'SSIM: ',ssim/num_batch_test)
         # export train batches
         if OUTPUT_TRAIN_SAMPLES and (batch % FLAGS.summary_train_period == 0):
             # get train data
@@ -287,9 +289,10 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
 
         
         # export check points
-        if batch % FLAGS.checkpoint_period == 0:
+        if batch % FLAGS.checkpoint_period == 0 and Snr>snr_prev:
             # Save checkpoint
             _save_checkpoint(td, batch)
+            snr_prev=Snr
 
     _save_checkpoint(td, batch)
     print('Finished training!')
