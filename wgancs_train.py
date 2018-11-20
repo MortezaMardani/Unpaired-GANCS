@@ -61,7 +61,7 @@ def _summarize_progress(train_data, feature, label, gene_output,
     
     # concate for visualize image
     if FLAGS.use_phase==True:
-      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt,10*abs(mag_gt-mag_output)])
+      image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt,30*abs(mag_zpad-mag_output),30*abs(mag_gt-mag_output)])
     else:
       image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt,abs(mag_gt-mag_zpad)])
     image = image[0:max_samples,:,:,:]
@@ -246,6 +246,9 @@ def train_model(train_data, batchcount, num_sample_train=1984, num_sample_test=1
                 gene_output, gene_layers= td.sess.run(ops, feed_dict=feed_dict)       
                 inference_time = time.time() - forward_passing_time
 		
+                tbimage=tf.summary.image('testout',tf.abs(gene_layers),2)
+                sum_writer.add_summary(td.sess.run(tbimage))
+
                 # print('gene_var_list',[x.shape for x in gene_var_list])
                 #print('gene_layers',[x.shape for x in gene_layers])
                 #print("test time data consistency:", gene_dc_loss): add td.gene_dc_loss in ops

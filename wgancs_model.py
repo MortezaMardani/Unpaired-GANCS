@@ -607,8 +607,10 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
     new_vars  = tf.global_variables()#tf.all_variables() , all_variables() are deprecated
     gene_vars = list(set(new_vars) - set(old_vars))
 
+    last_layer=tf.cast(last_layer,tf.complex64)
+    last_layer = tf.reshape(last_layer[:,:,:,0]+1j*last_layer[:,:,:,1],[FLAGS.batch_size,160,128,1]) 
     # select subset of layers
-    output_layers = [model.outputs[0]] + model.outputs[1:-1][::layer_output_skip] + [model.outputs[-1]]
+    output_layers = last_layer#[model.outputs[0]] + model.outputs[1:-1][::layer_output_skip] + [model.outputs[-1]]
 
     return model.get_output(), gene_vars, output_layers
 
@@ -660,7 +662,8 @@ def create_model(sess, features, labels, masks, architecture='resnet'):
         gene_output = tf.reshape(gene_output_real, [FLAGS.batch_size, rows, cols, 2])
         gene_layers = gene_layers_1
 
-        
+        tf.summary.image('gene_train_last',abs(gene_layers),2)
+    
         if FLAGS.use_phase == True:
           pass
         else:
